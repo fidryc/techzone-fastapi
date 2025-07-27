@@ -1,0 +1,6 @@
+venv/
+keys/
+*.log
+*.env
+__pycache__/
+secrets.json
