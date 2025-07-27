@@ -28,3 +28,11 @@ async def test_jwt(request: Request, response: Response, session = Depends(get_s
     user = await users_services.get_current_user(request, response)
     print(user.email)
     
+
+@router.post('/refresh')
+async def refresh(request: Request, response: Response, session = Depends(get_session)):
+    users_services = UsersServices(session)
+    user = await users_services.get_current_user(request, response)
+    print(user.email)
+    
+    

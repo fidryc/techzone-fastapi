@@ -4,3 +4,5 @@ keys/
 *.env
 __pycache__/
 secrets.json
+*.$plane.drawio.bkp
+*.drawio

@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from app.email.servises import send_email
 from app.email.email_template import register_code
 from app.users.utils import get_hash
-from app.users.jwt import get_jwt, get_refresh_jwt, validate_payload, create_jwt
+from app.users.jwt import get_access_token, get_refresh_token, set_token, validate_payload_fields, create_token, validate_exp_token
 from datetime import datetime, timedelta, timezone
 from app.users.schema import UsersSchema
 from app.users.utils import check_pwd
@@ -34,40 +34,37 @@ class UsersServices:
         except IntegrityError:
             raise HTTPException(status_code=422, detail='Email или номер уже используются')
         
-    async def get_current_user(self, request: Request, response: Response):
-        token_payload = get_jwt(request)
+    async def get_user_from_token(self, request: Request, response: Response):
+        token_payload = get_access_token(request)
+        validate_payload_fields(token_payload)
         
-        validate_payload(token_payload)
+        user = await self.dao.find_user(token_payload['user_email'], token_payload['user_number'])
+        if not user:
+            raise HTTPException(401, 'Неверный email или number')
         
-        user_by_email = await self.dao.find_by_filter(email=token_payload['user_email'])
-        user_by_email = user_by_email[0]
+        try:
+            validate_exp_token(token_payload)
         
-        if user_by_email.email != token_payload['user_email']:
-            raise HTTPException(401, 'email либо не существует в базе либо email неправильный')
-        
-        exp = token_payload['exp']
-        if datetime.now(timezone.utc).timestamp() > exp:
-            print('ВРЕМЯ JWT ВЫШЛО, ПЫТАЕМСЯ СДЕЛАТЬ НОВЫЙ')
-            access_refresh_token = get_refresh_jwt(request)
-            exp_refresh = access_refresh_token['exp']
-            if datetime.now(timezone.utc).timestamp() > exp_refresh:
-                raise HTTPException(401, 'время токена вышло')
-            jwt = create_jwt(user_by_email, timedelta(seconds=settings.EXP_SEC))
-            response.set_cookie('access_token', jwt)
-            print('СДЕЛАН НОВЫЙ ТОКЕН jwt')
-        return user_by_email
-        
+        except HTTPException:
+            print('Access token истек. Пытаемя сделать новый')
+            refresh_token = get_refresh_token(request)
+            validate_exp_token(refresh_token)
+            set_token(response, user, 'access')
+    
+        return user
+    
+    # СДЕЛАТЬ ЧЕРНЫЙ СПИСОК refresh
+    
     async def auth_user(self, response: Response, user: UsersSchema):
         user_in_db = await self.dao.find_user(user.email, user.number)
-        user_in_db = user_in_db[0]
         if not user_in_db:
             raise HTTPException(401, 'Неправильный номер телефона или почта')
         if not check_pwd(user.password, user_in_db.hashed_password):
             raise HTTPException(401, detail='Неправильный пароль')
-        jwt = create_jwt(user, timedelta(seconds=settings.EXP_SEC))
-        jwt_refresh = create_jwt(user, timedelta(days=settings.EXP_REFRESH_DAYS))
+        jwt = create_token(user, 'access')
+        jwt_refresh = create_token(user, 'refresh')
         response.set_cookie('access_token', jwt)
-        response.set_cookie('access_refresh_token', jwt_refresh, max_age=int(self.exp_refresh_token))
+        response.set_cookie('refresh_token', jwt_refresh, max_age=int(self.exp_refresh_token))
         
         
         

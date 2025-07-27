@@ -25,9 +25,9 @@ class UsersDao(BaseDao):
         user_by_email = await self.find_by_filter(email=email)
         user_by_number = await self.find_by_filter(number=number)
         if user_by_email:
-            return user_by_email
+            return user_by_email[0]
         if user_by_number:
-            return user_by_number
+            return user_by_number[0]
     
     
     
