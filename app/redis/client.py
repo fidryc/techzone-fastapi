@@ -1,3 +1,5 @@
+import json
+from fastapi import HTTPException
 from redis.asyncio import Redis
 from app.config import settings
 
@@ -7,3 +9,4 @@ redis_client = Redis(
     db=0,
     decode_responses=True
 )
+

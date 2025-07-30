@@ -13,3 +13,9 @@ class Users(Base):
     home_address = Column(String)
     pickup_store = Column(String)
     number = Column(String, nullable=True, unique=True)
+    
+class RefreshTokenBL(Base):
+    __tablename__ = 'refresh_token_bl'
+    
+    id = Column(Integer, primary_key=True, nullable=False)
+    jti = Column(String, nullable=False, unique=True)

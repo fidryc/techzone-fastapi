@@ -12,7 +12,7 @@ from app.database import Base, DATABASE_URL
 
 sys.path.insert(0, dirname(dirname(dirname(abspath(__file__)))))
 
-from app.users.models import Users
+from app.users.models import Users, RefreshTokenBL
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

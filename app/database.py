@@ -10,7 +10,10 @@ session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False
 
 async def get_session():
     async with session_maker() as session:
-        yield session
+        try:
+            yield session
+        finally:
+            await session.close()
 
 class Base(DeclarativeBase):
     pass

@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: int
     
+    VER_CODE_EXP_SEC: int
+    
+    MAX_TRIES_EMAIL_CODE: int
+    
     class Config:
         env_file = '.env'
         

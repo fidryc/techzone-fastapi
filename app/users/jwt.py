@@ -5,15 +5,38 @@ from app.users.schema import UsersSchema
 from datetime import datetime, timedelta, timezone
 from fastapi import (Request, Response, HTTPException)
 import uuid
+from app.exceptions import HttpExc401Unauth
 
+def create_and_set_token_verif_email(
+    response: Response,
+    user: UsersSchema
+):
+    payload = {
+            'user_email': str(user.email),
+        }
+    verif_email_token = encode(payload, key=settings.PRIVATE_SECRET_KEY, algorithm=settings.ALGORITM)
+    response.set_cookie('verif_email_token', verif_email_token)
+
+def get_verif_token(request: Request):
+    token = request.cookies.get('verif_email_token')
+    if not token:
+        raise HttpExc401Unauth('Не передан токен подтверждения.')
+    try:
+        token_payload: dict = decode(token, settings.PUBLIC_SECRET_KEY, settings.ALGORITM, options={"verify_exp": False})
+        if not token_payload.get('user_email', None):
+            raise HttpExc401Unauth('Неверный токен подтверждения.')
+        return token_payload
+    except:
+        raise HttpExc401Unauth('Ошибка декодировки токена подверждения email')
+    
 def create_token(
     user: UsersSchema,
     type: str,
 ):
+    jti = str(uuid.uuid4())
     if type == 'access':
         time_exp = datetime.now(timezone.utc) + timedelta(seconds=settings.EXP_SEC)
     elif type == 'refresh':
-        jti = str(uuid.uuid4())
         time_exp = datetime.now(timezone.utc) + timedelta(days=settings.EXP_REFRESH_DAYS)
         
     payload = {
@@ -21,13 +44,13 @@ def create_token(
             'user_email': str(user.email),
             'user_number': str(user.number),
             'exp': time_exp.timestamp(),
-            'type': type
+            'type': str(type)
         }
     jwt = encode(payload, key=settings.PRIVATE_SECRET_KEY, algorithm=settings.ALGORITM)
     
     return jwt
     
-def set_token(response: Response, user: UsersSchema, type):
+def set_token(response: Response, user, type):
     if type == 'access':
         token = create_token(user, 'access')
         response.set_cookie('access_token', token, httponly=True)
@@ -38,29 +61,35 @@ def set_token(response: Response, user: UsersSchema, type):
 
 def get_access_token(request: Request):
     token = request.cookies.get('access_token')
-    if not token or token['type'] == 'access':
-        raise HTTPException(401, 'Не авторизован jwt')
+    if not token:
+        raise HttpExc401Unauth('Нет токена для проверки аккаунт')
     try:
         payload = decode(token, settings.PUBLIC_SECRET_KEY, settings.ALGORITM,  options={"verify_exp": False})
+        if payload.get('type') != 'access':
+            raise HttpExc401Unauth('Токен access подделан')
         return payload
     except:
-        raise HTTPException(401, 'jwt')
+        raise HttpExc401Unauth(401, 'Ошибка декодировки access токена')
     
 def get_refresh_token(request: Request):
     token = request.cookies.get('refresh_token')
-    if not token and token['type'] == 'refresh':
-        raise HTTPException(401, 'refresh token нет. Авторизуйтесь заново')
+    if not token:
+        raise HttpExc401Unauth('refresh token нет. Авторизуйтесь заново')
     try:
         payload = decode(token, settings.PUBLIC_SECRET_KEY, settings.ALGORITM,  options={"verify_exp": False})
+        if payload.get('type') != 'refresh':
+            raise HttpExc401Unauth('Токен refresh подделан')
         return payload
     except:
-        raise HTTPException(401, 'refresh')
+        raise HttpExc401Unauth('Ошибка декодировки refresh')
     
 def validate_payload_fields(token_payload):
     """
         Проверка, что email или number существует и корректный
     """
-    
+    jti = token_payload.get('jti', None)
+    if not jti or not isinstance(jti, str):
+        raise ValueError('неправильное поле jti')
     user_email = token_payload.get('user_email', None)
     user_number = token_payload.get('user_number', None)
     if (not user_email and not user_number) or (not (isinstance(user_email, str)) and not (isinstance(user_number, str))):
@@ -74,14 +103,8 @@ def validate_payload_fields(token_payload):
     
 def validate_exp_token(token):
     if datetime.now(timezone.utc).timestamp() > token['exp']:
-        raise HTTPException(401, f'Время токена истекло {token['type']}')
+        raise HttpExc401Unauth(f'Время токена истекло {token['type']}')
     return True
 
-def tdt_token(type):
-    timedt = {
-        'access': timedelta(seconds=settings.EXP_SEC),
-        'refresh': timedelta(days=settings.EXP_REFRESH_DAYS)
-    }
-    return timedt[type]
     
 
