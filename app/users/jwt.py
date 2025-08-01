@@ -1,7 +1,7 @@
 from jwt import encode, decode
 import cryptography
 from app.config import settings
-from app.users.schema import UsersSchema
+from app.users.schema import UserSchema
 from datetime import datetime, timedelta, timezone
 from fastapi import (Request, Response, HTTPException)
 import uuid
@@ -9,7 +9,7 @@ from app.exceptions import HttpExc401Unauth
 
 def create_and_set_token_verif_email(
     response: Response,
-    user: UsersSchema
+    user: UserSchema
 ):
     payload = {
             'user_email': str(user.email),
@@ -30,7 +30,7 @@ def get_verif_token(request: Request):
         raise HttpExc401Unauth('Ошибка декодировки токена подверждения email')
     
 def create_token(
-    user: UsersSchema,
+    user: UserSchema,
     type: str,
 ):
     jti = str(uuid.uuid4())
@@ -43,6 +43,7 @@ def create_token(
             'jti': jti,
             'user_email': str(user.email),
             'user_number': str(user.number),
+            'user_role': str(user.number),
             'exp': time_exp.timestamp(),
             'type': str(type)
         }
@@ -94,6 +95,9 @@ def validate_payload_fields(token_payload):
     user_number = token_payload.get('user_number', None)
     if (not user_email and not user_number) or (not (isinstance(user_email, str)) and not (isinstance(user_number, str))):
         raise ValueError('неправильное поле user_email')
+    user_role = token_payload.get('role', None)
+    if not user_role or not isinstance(user_role, str):
+        raise ValueError('неправильное поле user_role')
     exp = token_payload.get('exp', None)
     if not exp or not isinstance(exp, float):
         raise ValueError('неправильное поле exp')

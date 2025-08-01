@@ -1,11 +1,11 @@
 from app.dao import BaseDao
 from app.exceptions import HttpExc409Conflict
-from app.users.models import Users, RefreshTokenBL
+from app.users.models import User, RefreshTokenBL
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 
-class UsersDao(BaseDao):
-    model = Users
+class UserDao(BaseDao):
+    model = User
     
     def __init__(self, session: AsyncSession):
         self.session = session

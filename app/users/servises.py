@@ -10,22 +10,22 @@ from app.email.servises import send_email
 from app.exceptions import HttpExc401Unauth, HttpExc409Conflict
 from app.redis.client import redis_client
 from app.redis.utils import redis_get_data, redis_rerecord_tries_with_ttl
-from app.users.dao import RefreshTokenBLDao, UsersDao
+from app.users.dao import RefreshTokenBLDao, UserDao
 from app.users.jwt import (create_and_set_token_verif_email, create_token,
                            get_access_token, get_refresh_token,
                            get_verif_token, set_token, validate_exp_token,
                            validate_payload_fields)
-from app.users.schema import UsersAuthSchema, UsersSchema
+from app.users.schema import UserAuthSchema, UserSchema
 from app.users.utils import (check_pwd, get_hash, prepare_user_for_auth,
                              random_code, validate_tries, verif_code)
 
 
-class UsersServices:
+class UserService:
     exp_access_token = timedelta(seconds=settings.EXP_SEC).total_seconds()
     exp_refresh_token = timedelta(days=settings.EXP_REFRESH_DAYS).total_seconds()
     
     def __init__(self, session):
-        self.dao = UsersDao(session)
+        self.dao = UserDao(session)
     
     async def create_user_with_verification(self, response: Response, user):
         """
@@ -103,7 +103,7 @@ class UsersServices:
     
             return user_from_refresh_token
     
-    async def auth_user(self, response: Response, user: UsersAuthSchema):
+    async def auth_user(self, response: Response, user: UserAuthSchema):
         user_in_db = await self.dao.find_user(user.email, user.number)
         print(user_in_db)
         if not user_in_db:

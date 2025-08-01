@@ -3,7 +3,7 @@ from re import fullmatch
 from typing import Optional
 import random
 
-class UsersSchema(BaseModel):
+class UserSchema(BaseModel):
     id: Optional[int] = None
     email: Optional[str] = Field(None, example='t@gmail.com')
     password: str
@@ -11,7 +11,7 @@ class UsersSchema(BaseModel):
     home_address: str
     pickup_store: str
     number: Optional[str] = Field(None, example=f'+7{random.randint(int('1'*10), int('9'*10))}')
-
+    role: Optional[str]
     
     @staticmethod
     def convert_number(number: str):
@@ -50,8 +50,8 @@ class UsersSchema(BaseModel):
         ru = 'mail|bk|list|inbox|yandex|ya|rambler|hotmail|outlook'
         en = 'gmail|yahoo|outlook|hotmail|aol|icloud|me|msn'
         if not any(
-            [fullmatch(rf'[a-zA-ZА-Яа-я]+@({ru}).ru', email),
-            fullmatch(rf'[a-zA-ZА-Яа-я]+@({en}).com', email)]
+            [fullmatch(rf'[a-zA-ZА-Яа-я0-9]+@({ru}).ru', email),
+            fullmatch(rf'[a-zA-ZА-Яа-я0-9]+@({en}).com', email)]
             ):
             raise ValueError('Введенный email неверный')
         return email
@@ -63,7 +63,7 @@ class UsersSchema(BaseModel):
             raise ValueError('Должен быть указан хотя бы email или number')
         return self
     
-class UsersAuthSchema(BaseModel):
+class UserAuthSchema(BaseModel):
     email: Optional[str] = Field(None)
     password: str
     number: Optional[str] = Field(None)

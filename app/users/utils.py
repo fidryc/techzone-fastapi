@@ -44,7 +44,8 @@ def prepare_user_for_auth(user):
             'city': user.city,
             'home_address': user.home_address,
             'pickup_store': user.pickup_store,
-            'number': user.number}
+            'number': user.number,
+            'role': user.role}
     data = {
         'user': user_dict,
         'code': code,
