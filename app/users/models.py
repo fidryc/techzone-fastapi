@@ -11,7 +11,7 @@ class User(Base):
     hashed_password = Column(String)
     city = Column(String)
     home_address = Column(String)
-    pickup_store_id = Column(ForeignKey('stores.store_id', ondelete='SET NULL'))
+    pickup_store_id = Column(ForeignKey('stores.store_id', ondelete='SET NULL'), nullable=True, default=None)
     number = Column(String, nullable=True, unique=True)
     role = Column(Enum('user', 'seller', 'admin', name='user_role_enum'), default='user', nullable=False)
     

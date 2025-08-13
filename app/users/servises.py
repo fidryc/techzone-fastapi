@@ -9,7 +9,7 @@ from app.email.email_template import register_code
 from app.email.servises import send_email
 from app.exceptions import HttpExc401Unauth, HttpExc409Conflict
 from app.redis.client import redis_client
-from app.redis.utils import redis_get_data, redis_rerecord_tries_with_ttl
+from app.redis.utils import redis_get_data, redis_record_tries_with_ttl
 from app.users.dao import RefreshTokenBLDao, UserDao
 from app.users.jwt import (create_and_set_token_verif_email, create_token,
                            get_access_token, get_refresh_token,
@@ -59,7 +59,7 @@ class UserService:
         
         payload = get_verif_token(request)
         key = f'verify_code_user:{payload['user_email']}'
-        data = await redis_rerecord_tries_with_ttl(key)
+        data = await redis_record_tries_with_ttl(key)
         validate_tries(data['try'])
         verif_code(code_from_user, data['code'])
         await self.dao.add(**data['user'])

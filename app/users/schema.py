@@ -9,9 +9,9 @@ class UserSchema(BaseModel):
     password: str
     city: str
     home_address: str
-    pickup_store: str
+    pickup_store: Optional[int] = None
     number: Optional[str] = Field(None, example=f'+7{random.randint(int('1'*10), int('9'*10))}')
-    role: Optional[str]
+    role: Optional[str] = None
     
     @staticmethod
     def convert_number(number: str):
@@ -56,6 +56,9 @@ class UserSchema(BaseModel):
             raise ValueError('Введенный email неверный')
         return email
         
+    @field_validator('role')
+    def validate_role(cls, role):
+        return 'user'
     
     @model_validator(mode='after')
     def validate_model(self):

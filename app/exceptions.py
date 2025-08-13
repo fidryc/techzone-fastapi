@@ -8,4 +8,8 @@ def HttpExc401Unauth(detail) -> HTTPException:
 def HttpExc409Conflict(detail) -> HTTPException:
     return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)
 
+def HttpExc403Conflict(detail) -> HTTPException:
+    return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
         
+def HttpExc422(detail) -> HTTPException:
+    return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail)

@@ -17,12 +17,12 @@ class Product(Base):
     title = Column(String(length=256))
     category_id = Column(ForeignKey(column='categories.category_id', ondelete='SET NULL'), nullable=True, index=True)
     specification = Column(JSONB, nullable=False)
-    price = Column(Numeric(10, 2), CheckConstraint('price >= 0'), nullable=False)
-    rating = Column(Float, CheckConstraint('rating > 0 and rating <= 5'), nullable=True)
+    price = Column(Numeric(10, 2), CheckConstraint('price >= 0'), nullable=False, index=True)
+    rating = Column(Float, CheckConstraint('rating > 0 and rating <= 5'), nullable=True, index=True)
     description = Column(String(1024), nullable=False)
     months_warranty = Column(Integer, nullable=True)
     country_origin = Column(String(length=128), nullable=False)
-    sale_percent = Column(Integer, CheckConstraint('sale_percent >= 0 AND sale_percent <= 100'), nullable=True, default=0)
+    sale_percent = Column(Integer, CheckConstraint('sale_percent >= 0 AND sale_percent <= 100'), nullable=True, default=0, index=True)
     views = Column(Integer, CheckConstraint('views >= 0'))
     
     __table_args__ = (
@@ -42,6 +42,7 @@ class Review(Base):
     date_posted = Column(DateTime, default=datetime.now())
     date_updated = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
     is_edited = Column(Boolean)
+    rating = Column(Integer, nullable=True, default=None)
     
 class FavoriteProduct(Base):
     __tablename__ = 'favorite_products'

@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     
     MAX_TRIES_EMAIL_CODE: int
     
+    ELASTIC_HOST: str
+    ELASTIC_PORT: int
+    
+    INDEX_PRODUCTS: str
     class Config:
         env_file = '.env'
         

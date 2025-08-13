@@ -2,7 +2,7 @@ import json
 from fastapi import HTTPException
 from app.redis.client import redis_client
 
-async def redis_rerecord_tries_with_ttl(key):
+async def redis_record_tries_with_ttl(key):
     ttl = await redis_client.ttl(key)
     
     if not ttl > 0:

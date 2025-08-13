@@ -25,3 +25,13 @@ class BaseDao:
         query = select(self.model).filter_by(**filters)
         obj = await self.session.execute(query)
         return obj.scalars().all()
+    
+    async def find_by_filter_one(self, **filters):
+        query = select(self.model).filter_by(**filters)
+        obj = await self.session.execute(query)
+        return obj.scalar_one_or_none()
+    
+    async def all(self):
+        query = select(self.model)
+        obj = await self.session.execute(query)
+        return obj.scalars().all()

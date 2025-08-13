@@ -43,7 +43,7 @@ def create_token(
             'jti': jti,
             'user_email': str(user.email),
             'user_number': str(user.number),
-            'user_role': str(user.number),
+            'user_role': str(user.role),
             'exp': time_exp.timestamp(),
             'type': str(type)
         }
@@ -95,7 +95,7 @@ def validate_payload_fields(token_payload):
     user_number = token_payload.get('user_number', None)
     if (not user_email and not user_number) or (not (isinstance(user_email, str)) and not (isinstance(user_number, str))):
         raise ValueError('неправильное поле user_email')
-    user_role = token_payload.get('role', None)
+    user_role = token_payload.get('user_role', None)
     if not user_role or not isinstance(user_role, str):
         raise ValueError('неправильное поле user_role')
     exp = token_payload.get('exp', None)
