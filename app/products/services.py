@@ -1,12 +1,15 @@
 from pydantic import ValidationError
+from app.email.email_template import new_product_email
 from app.exceptions import HttpExc403Conflict, HttpExc422
-from app.products.dao import CategoryDao, ProductDao, ReviewDao
+from app.products.dao import CategoryDao, ProductDao, ProductSyncDao, ReviewDao
 from app.products.schema import ProductSchema
 from app.products.schema_specifications import specification_schemas_dict
+from app.tasks.tasks import send_email_about_new_product
 
 class ProductService:
     def __init__(self, session):
         self.product_dao = ProductDao(session)
+        self.product_sync_dao = ProductSyncDao(session)
         self.category_dao = CategoryDao(session)
         self.review_dao = ReviewDao(session)
         self.session = session
@@ -32,7 +35,7 @@ class ProductService:
         product = product.model_dump()
         await self.product_dao.add(**product)
         
-    async def add_product(self, product: ProductSchema, user):
+    async def add_product(self, product: ProductSchema, user, flag_notification: bool):
         '''
             Добавляет товар со всеми проверками
         '''
@@ -41,8 +44,29 @@ class ProductService:
         self._validate_specification(product, class_name_for_validate)
         await self._add(product)
         
+        if flag_notification:
+            user_emails = await self.product_dao.get_user_emails_for_send_emails_about_new_product(product)
+            for email in user_emails:
+                send_email_about_new_product.delay(email, title=product.title, price=product.price)
+                
+            
+        
     async def update_ratings(self):
         ratings = await self.review_dao.rating_of_products()
         await self.product_dao.update_ratings(ratings)
         await self.session.commit()
+        
+    async def recomendation(self, user_id):
+        avg_price = await self.product_dao.avg_price(user_id)
+        if avg_price:
+            return await self.product_dao.get_recomentation_with_avg_price(user_id, avg_price)
+        else:
+            return await self.product_dao.get_recomentation(user_id)
+        
+    def update_reviews(self):
+        
+        avg_reviews = self.product_sync_dao.get_avg_reviews()
+        self.product_sync_dao.update_avg_reviews(avg_reviews)
+        
+    
         

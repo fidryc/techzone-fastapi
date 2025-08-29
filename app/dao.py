@@ -1,6 +1,7 @@
 from app.database import session_maker
 from sqlalchemy import insert, values, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 
 class Pass:
@@ -34,4 +35,15 @@ class BaseDao:
     async def all(self):
         query = select(self.model)
         obj = await self.session.execute(query)
+        return obj.scalars().all()
+    
+# Синхронный вариант для celery
+class BaseSyncDao:
+    model = Pass
+    def __init__(self, session: Session):
+        self.session = session
+        
+    def all(self):
+        query = select(self.model)
+        obj = self.session.execute(query)
         return obj.scalars().all()

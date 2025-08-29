@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.config import settings
 from app.email.email_template import register_code
-from app.email.servises import send_email
+from app.email.servises import async_send_email
 from app.exceptions import HttpExc401Unauth, HttpExc409Conflict
 from app.redis.client import redis_client
 from app.redis.utils import redis_get_data, redis_record_tries_with_ttl
@@ -42,7 +42,7 @@ class UserService:
             create_and_set_token_verif_email(response, user)
             email_to='f98924746@gmail.com'
             msg = register_code(email_to, data['code'])
-            await send_email(msg)
+            await async_send_email(msg)
             
         except IntegrityError:
             raise HttpExc409Conflict('Email или номер уже используются')
@@ -112,5 +112,8 @@ class UserService:
             raise HttpExc401Unauth('Неправильный пароль')
         set_token(response, user_in_db, 'access')
         set_token(response, user_in_db, 'refresh')
+        
+    async def send_emails_about_new_product(self, product):
+        users_list_for_send_email = await self.get_users_for_send_emails()
         
         

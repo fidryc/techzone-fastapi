@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     ELASTIC_PORT: int
     
     INDEX_PRODUCTS: str
+    
     class Config:
         env_file = '.env'
         

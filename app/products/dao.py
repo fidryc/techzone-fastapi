@@ -1,5 +1,5 @@
-from app.dao import BaseDao
-from sqlalchemy import Integer, between, text, join, select, cast
+from app.dao import BaseDao, BaseSyncDao
+from sqlalchemy import Integer, between, text, join, select, cast, update
 
 from app.products.models import Category, Product
 
@@ -43,7 +43,15 @@ class ProductDao(BaseDao):
         
         print(query)
         return (await self.session.execute(query)).mappings().all()
-            
+    
+    async def find_by_id(self, product_id):
+        query = select(Product).where(Product.product_id==product_id)
+        product = (await self.session.execute(query)).scalar_one_or_none()
+        product.views += 1
+        query_update = update(Product).where(Product.product_id==product_id).values(views=product.views)
+        await self.session.execute(query_update)
+        await self.session.commit()
+        return product
     def _category_filter(self, query, category):
         return query.join(Category, Product.category_id == Category.category_id).where(Category.title == category)
     
@@ -92,7 +100,100 @@ class ProductDao(BaseDao):
             }
             print(params)
             await self.session.execute(query, params)
+        
+    async def avg_price(self, user_id):
+        params = {'user_id': user_id}
+        query = text("""SELECT AVG(products.price) AS avg_price FROM public.purchases
+                    JOIN orders USING(order_id)
+                    JOIN products USING (product_id)
+                    WHERE user_id = :user_id""")
+        return (await self.session.execute(query, params=params)).scalars().one_or_none()
     
+    async def get_recomentation_with_avg_price(self, user_id, avg_price):
+        params = {'user_id': user_id, 'avg_price': avg_price}
+        query = text("""WITH favorite_cats AS (
+                            SELECT category_id FROM public.favorite_products
+                            JOIN products USING (product_id)
+                            WHERE user_id = :user_id
+                            GROUP BY (user_id, category_id)
+                            ORDER BY COUNT(category_id) DESC
+                            LIMIT 5),
+                        popular_not_in_fav_cats AS (
+                            SELECT product_id, title, category_id, specification, price, rating, description, months_warranty, country_origin, sale_percent, views
+                            FROM products
+                            WHERE category_id not in (SELECT category_id FROM favorite_cats)
+                            ORDER BY rating DESC, views DESC
+                            LIMIT 30
+                        ),
+                        popular_in_fav_cats AS (
+                            SELECT product_id, title, category_id, specification, price, rating, description, months_warranty, country_origin, sale_percent, views
+                            FROM products
+                            WHERE category_id in (SELECT category_id FROM favorite_cats)
+                            ORDER BY rating DESC, views DESC
+                            LIMIT 60
+                        ),
+                        union_tables AS (
+                            SELECT product_id, title, category_id, specification, price, rating, description, months_warranty, country_origin, sale_percent, views
+                            FROM popular_not_in_fav_cats
+                            UNION 
+                            SELECT product_id, title, category_id, specification, price, rating, description, months_warranty, country_origin, sale_percent, views
+                            FROM popular_in_fav_cats
+                        )
+                        SELECT *
+                        FROM union_tables
+                        ORDER BY ABS(price - :avg_price) ASC""")
+        return (await self.session.execute(query, params=params)).mappings().all()
+    
+    async def get_recomentation(self, user_id):
+        params = {'user_id': user_id}
+        query = text("""WITH favorite_cats AS (
+                        SELECT category_id FROM public.favorite_products
+                        JOIN products USING (product_id)
+                        WHERE user_id = :user_id
+                        GROUP BY (user_id, category_id)
+                        ORDER BY COUNT(category_id) DESC
+                        LIMIT 5),
+                        popular_not_in_fav_cats AS (
+                        SELECT product_id, title, category_id, specification, price, rating, description, months_warranty, country_origin, sale_percent, views
+                        FROM products
+                        WHERE category_id not in (SELECT category_id FROM favorite_cats)
+                        ORDER BY rating DESC, views DESC
+                        LIMIT 30
+                        ),
+                        popular_in_fav_cats AS (
+                        SELECT product_id, title, category_id, specification, price, rating, description, months_warranty, country_origin, sale_percent, views
+                        FROM products
+                        WHERE category_id in (SELECT category_id FROM favorite_cats)
+                        ORDER BY rating DESC, views DESC
+                        LIMIT 60
+                        )
+                        SELECT * FROM popular_not_in_fav_cats
+                        UNION SELECT * FROM popular_in_fav_cats
+                        ORDER BY rating DESC """)
+        return (await self.session.execute(query, params=params)).mappings().all()
+
+    async def get_user_emails_for_send_emails_about_new_product(self, product):
+        params = {
+            'category_id': product.category_id
+        }
+        query = text("""WITH count_favs AS (
+                    SELECT user_id, category_id, COUNT(category_id) AS count_products
+                    FROM favorite_products JOIN products USING (product_id)
+                    GROUP BY (user_id, category_id)
+                ),
+                rank_categories AS (
+                    SELECT user_id, category_id, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY count_products DESC) AS rn
+                    FROM count_favs
+                ),
+                fav_categories AS (
+                    SELECT user_id, category_id FROM rank_categories
+                    WHERE rn = 1
+                )
+                SELECT email
+                FROM fav_categories
+                JOIN users USING (user_id)
+                WHERE category_id = :category_id""")
+        return (await self.session.execute(query, params)).scalars().all()
 class ReviewDao(BaseDao):
     async def rating_of_products(self):
         query = text("""SELECT product_id, ROUND(AVG(rating), 1) AS rating
@@ -103,3 +204,26 @@ class ReviewDao(BaseDao):
 
 class CategoryDao(BaseDao):
     model = Category
+    
+# Синхронный вариант для celery
+class ProductSyncDao(BaseSyncDao):
+    model = Product
+    
+    def get_avg_reviews(self):
+        query = text("""
+                     SELECT product_id, ROUND(AVG(rating), 1)
+                    FROM reviews
+                    GROUP BY product_id
+                     """)
+        return self.session.execute(query).fetchall()
+    
+    def update_avg_reviews(self, products_avg_reviews: list[tuple[int, float]]):
+        query = text("""UPDATE products
+                     SET rating = :avg_review
+                     WHERE product_id = :product_id""")
+        for product_id, avg_review in products_avg_reviews:
+            params = {
+                'avg_review': float(avg_review),
+                'product_id': int(product_id)
+            }
+            self.session.execute(query, params)

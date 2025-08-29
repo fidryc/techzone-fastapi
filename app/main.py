@@ -3,16 +3,20 @@ from fastapi import FastAPI
 from app.users.router import router as users_router
 from app.redis.client import redis_client
 from app.products.router import router as products_router
-from elasticsearch import AsyncElasticsearch
+from elasticsearch import AsyncElasticsearch, Elasticsearch
 from app.config import settings
 from app.elasticsearch.router import router as el_router
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from redis import asyncio as aioredis
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.el_cl = AsyncElasticsearch(hosts=f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}")
-    app.state.scheduler = AsyncIOScheduler()
-    scheduler: AsyncIOScheduler = app.state.scheduler
+    app.state.el_cl_sync = Elasticsearch(hosts=f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}")
+    redis = aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}')
+    FastAPICache.init(RedisBackend(redis), prefix='fastapi-cache')
     yield
     el_cl: AsyncElasticsearch = app.state.el_cl
     await el_cl.close()

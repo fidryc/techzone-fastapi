@@ -1,12 +1,14 @@
 from fastapi import Request
 from fastapi import APIRouter, Depends
-from elasticsearch import AsyncElasticsearch
+from elasticsearch import AsyncElasticsearch, Elasticsearch
 
 from app.database import get_session
 from app.products.dao import ProductDao
 from app.products.schema import ProductReturnSchema, ProductSchema
 
-from app.elasticsearch.services import ElasticsearchService
+from app.elasticsearch.services import ElasticsearchService, ElasticsearchSyncService
+from app.config import settings
+from app.database import session_maker_sync
 router = APIRouter(
     prefix='/el',
     tags=['el']
@@ -15,6 +17,10 @@ router = APIRouter(
 def get_elasticsearch_cl(request: Request):
     """Dependency для получения сервиса Elasticsearch"""
     return request.app.state.el_cl
+
+def get_elasticsearch_cl_sync(request: Request):
+    """Dependency для получения сервиса Elasticsearch"""
+    return request.app.state.el_cl_sync
 
 @router.post('/delete_index')
 async def create_index(index_name:str, el_cl: AsyncElasticsearch=Depends(get_elasticsearch_cl)):
@@ -39,3 +45,11 @@ async def create_index_products(el_cl: AsyncElasticsearch=Depends(get_elasticsea
 async def add_all_products(el_cl: AsyncElasticsearch=Depends(get_elasticsearch_cl), session=Depends(get_session)):
     el_service = ElasticsearchService(el_cl)
     await el_service.add_all_products(session)
+    
+@router.post('/add_all_products_sync')
+def add_all_products():
+    with Elasticsearch(hosts=f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}") as el_cl:
+        el_service = ElasticsearchSyncService(el_cl)
+        with session_maker_sync() as session:
+            el_service.add_all_products(session=session)
+            print(10)

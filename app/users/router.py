@@ -1,4 +1,7 @@
+from datetime import datetime, timedelta
 from fastapi import APIRouter
+from app.email.email_template import register_code
+from app.email.servises import send_email
 from app.users.schema import UserAuthSchema, UserSchema
 from app.users.servises import UserService
 from fastapi import Depends, Response, Request
@@ -37,6 +40,7 @@ async def login(response: Response, session = Depends(get_session)):
 async def test_jwt(request: Request, response: Response, session = Depends(get_session)):
     users_services = UserService(session)
     user = await users_services.get_user_from_token(request, response)
+    return user.user_id
     
 
 @router.post('/refresh')
@@ -44,4 +48,9 @@ async def refresh(request: Request, response: Response, session = Depends(get_se
     users_services = UserService(session)
     user = await users_services.get_current_user(request, response)
     
+    
+@router.post('/test_email')
+def test():
+    msg = register_code('f98924746@gmail.com', '123')
+    send_email(msg)
     

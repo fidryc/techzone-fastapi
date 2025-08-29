@@ -70,5 +70,5 @@ class UserAuthSchema(BaseModel):
     email: Optional[str] = Field(None)
     password: str
     number: Optional[str] = Field(None)
-    
+  
     
