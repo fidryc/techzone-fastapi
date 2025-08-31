@@ -42,3 +42,11 @@ class Purchase(Base):
     order_id = Column(ForeignKey('orders.order_id', ondelete='CASCADE'), index=True)
     product_id = Column(ForeignKey('products.product_id', ondelete='CASCADE'), index=True)
     quantity = Column(Integer, CheckConstraint('quantity >= 0'))
+    
+class Basket(Base):
+    __tablename__ = 'baskets'
+    
+    basket_id = Column(Integer, primary_key=True)
+    user_id = Column(ForeignKey('users.uses_id', ondelete='CASCADE'), index=True)
+    product_id = Column(ForeignKey('products.product_id', ondelete='CASCADE'))
+    

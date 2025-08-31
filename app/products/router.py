@@ -50,7 +50,16 @@ async def get_products(
                                       country_origin = country_origin,
                                       specification_filters=specification_filters)
     
-@router.post('/add')
+@router.post('/add_product')
+async def add_product(request: Request, response: Response, product: ProductSchema, session=Depends(get_session)):
+    user_service = UserService(session)
+    user = await user_service.get_user_from_token(request, response)
+    product_service = ProductService(session)
+    
+    await product_service.add_product(product, user, flag_notification=True)
+    await session.commit()
+    
+@router.post('/')
 async def add_product(request: Request, response: Response, product: ProductSchema, session=Depends(get_session)):
     user_service = UserService(session)
     user = await user_service.get_user_from_token(request, response)
@@ -71,20 +80,8 @@ async def all(session=Depends(get_session)):
     product_dao = ProductDao(session)
     return await product_dao.all()
 
-        
-@router.post('/update_reviews')
-async def add_product(session=Depends(get_session)):
-    service = ProductService(session)
-    await service.update_ratings()
     
 @router.post('/find_by_id')
 async def add_product(product_id: int, session=Depends(get_session)):
     service = ProductService(session)
     return await service.product_dao.find_by_id(product_id)
-
-@router.post('/set_avg')
-def set_avg(product_id: int, session=Depends(get_session_sync)):
-    with session_maker_sync() as session:
-        dao = ProductSyncDao(session)
-        reviews = dao.get_avg_reviews()
-        dao.update_avg_reviews(reviews)

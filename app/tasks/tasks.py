@@ -8,7 +8,7 @@ from app.tasks.celery import app
 from celery import shared_task
 from app.database import session_maker, session_maker_sync
 from app.config import settings
-from app.products.dao import ProductSyncDao
+from app.products.dao import ProductSyncDao, ReviewSyncDao
 
 
 @app.task
@@ -29,8 +29,11 @@ def update_product_index():
 def update_avg_reviews():
     """Реализовано через синхронные функции, тк celery не поддерживает асинхронность"""
     with session_maker_sync() as session:
-        dao = ProductSyncDao(session)
-        reviews = dao.get_avg_reviews()
-        dao.update_avg_reviews(reviews)
+        review_dao = ReviewSyncDao(session)
+        product_dao = ProductSyncDao(session)
+        
+        reviews = review_dao.rating_of_products()
+        product_dao.update_avg_reviews(reviews)
+        
         session.commit()
     

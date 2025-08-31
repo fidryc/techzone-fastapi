@@ -16,7 +16,7 @@ app.conf.beat_schedule = {
 app.conf.beat_schedule = {
     'send_email_celery': {
         'task': 'app.tasks.tasks.update_avg_reviews',
-        'schedule': crontab(minute=0, hour=0),
+        'schedule': crontab(minute=10, hour=0),
         'args': ()
     },
 }

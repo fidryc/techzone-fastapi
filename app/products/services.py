@@ -1,7 +1,7 @@
 from pydantic import ValidationError
 from app.email.email_template import new_product_email
 from app.exceptions import HttpExc403Conflict, HttpExc422
-from app.products.dao import CategoryDao, ProductDao, ProductSyncDao, ReviewDao
+from app.products.dao import CategoryDao, ProductDao, ProductSyncDao, ReviewDao, ReviewSyncDao
 from app.products.schema import ProductSchema
 from app.products.schema_specifications import specification_schemas_dict
 from app.tasks.tasks import send_email_about_new_product
@@ -12,6 +12,7 @@ class ProductService:
         self.product_sync_dao = ProductSyncDao(session)
         self.category_dao = CategoryDao(session)
         self.review_dao = ReviewDao(session)
+        self.review_sync_dao = ReviewSyncDao(session)
         self.session = session
     
     @staticmethod
@@ -64,8 +65,7 @@ class ProductService:
             return await self.product_dao.get_recomentation(user_id)
         
     def update_reviews(self):
-        
-        avg_reviews = self.product_sync_dao.get_avg_reviews()
+        avg_reviews = self.review_sync_dao.rating_of_products()
         self.product_sync_dao.update_avg_reviews(avg_reviews)
         
     

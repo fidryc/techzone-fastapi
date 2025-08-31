@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from app.dao import BaseDao, BaseSyncDao
 from sqlalchemy import Integer, between, text, join, select, cast, update
 
@@ -86,22 +87,9 @@ class ProductDao(BaseDao):
         if not value.isdigit():
             return query.where(Product.specification[key].astext == value)
         return query.where(Product.specification[key].astext == value)
-    
-    async def update_ratings(self, ratings: list[dict]):
-        query = text('''
-                    UPDATE products
-                    SET rating = :rating
-                    WHERE product_id = :product_id
-                     ''')
-        for rating in ratings:
-            params = {
-                'product_id': rating.product_id,
-                'rating': rating.rating 
-            }
-            print(params)
-            await self.session.execute(query, params)
         
     async def avg_price(self, user_id):
+        """Получение средней цены товара купленного пользователем"""
         params = {'user_id': user_id}
         query = text("""SELECT AVG(products.price) AS avg_price FROM public.purchases
                     JOIN orders USING(order_id)
@@ -110,6 +98,7 @@ class ProductDao(BaseDao):
         return (await self.session.execute(query, params=params)).scalars().one_or_none()
     
     async def get_recomentation_with_avg_price(self, user_id, avg_price):
+        """Рекомендации с фильтрацией по средней цене"""
         params = {'user_id': user_id, 'avg_price': avg_price}
         query = text("""WITH favorite_cats AS (
                             SELECT category_id FROM public.favorite_products
@@ -173,6 +162,7 @@ class ProductDao(BaseDao):
         return (await self.session.execute(query, params=params)).mappings().all()
 
     async def get_user_emails_for_send_emails_about_new_product(self, product):
+        """Получение пользователей, которым нужно отправить email о появлении товара в их любимой категории"""
         params = {
             'category_id': product.category_id
         }
@@ -194,28 +184,10 @@ class ProductDao(BaseDao):
                 JOIN users USING (user_id)
                 WHERE category_id = :category_id""")
         return (await self.session.execute(query, params)).scalars().all()
-class ReviewDao(BaseDao):
-    async def rating_of_products(self):
-        query = text("""SELECT product_id, ROUND(AVG(rating), 1) AS rating
-                        FROM reviews
-                        GROUP BY product_id""")
-        result = await self.session.execute(query)
-        return result.fetchall()
 
-class CategoryDao(BaseDao):
-    model = Category
-    
 # Синхронный вариант для celery
 class ProductSyncDao(BaseSyncDao):
     model = Product
-    
-    def get_avg_reviews(self):
-        query = text("""
-                     SELECT product_id, ROUND(AVG(rating), 1)
-                    FROM reviews
-                    GROUP BY product_id
-                     """)
-        return self.session.execute(query).fetchall()
     
     def update_avg_reviews(self, products_avg_reviews: list[tuple[int, float]]):
         query = text("""UPDATE products
@@ -227,3 +199,22 @@ class ProductSyncDao(BaseSyncDao):
                 'product_id': int(product_id)
             }
             self.session.execute(query, params)
+
+class ReviewDao(BaseDao):
+    async def rating_of_products(self):
+        query = text("""SELECT product_id, ROUND(AVG(rating), 1) AS rating
+                        FROM reviews
+                        GROUP BY product_id""")
+        result = await self.session.execute(query)
+        return result.fetchall()
+    
+class ReviewSyncDao(BaseDao):
+    def rating_of_products(self):
+        query = text("""SELECT product_id, ROUND(AVG(rating), 1) AS rating
+                        FROM reviews
+                        GROUP BY product_id""")
+        return self.session.execute(query).fetchall()
+
+class CategoryDao(BaseDao):
+    model = Category
+    
