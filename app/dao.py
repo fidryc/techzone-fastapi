@@ -16,7 +16,7 @@ class BaseDao:
     async def add(self, **data):
         query = insert(self.model).values(**data)
         await self.session.execute(query)
-            
+        
     async def find_by_id(self, id):
         query = select(self.model).filter_by(id=id)
         obj = await self.session.execute(query)

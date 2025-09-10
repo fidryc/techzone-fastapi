@@ -10,6 +10,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from redis import asyncio as aioredis
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
+from app.orders.router import router as orders_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -26,5 +27,7 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(users_router)
 app.include_router(products_router)
 app.include_router(el_router)
+app.include_router(orders_router)
+
 
     

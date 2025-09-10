@@ -39,3 +39,5 @@ class RefreshTokenBLDao(BaseDao):
     async def get_reftoken_bl(self, jti):
         token = await self.find_by_filter(jti=jti)
         return token
+    
+    

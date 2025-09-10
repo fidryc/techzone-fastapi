@@ -51,12 +51,5 @@ class FavoriteProduct(Base):
     user_id = Column(ForeignKey('users.user_id', ondelete='CASCADE'), index=True)
     product_id = Column(ForeignKey('products.product_id', ondelete='CASCADE'), index=True)
     
-class Basket(Base):
-    __tablename__ = 'baskets'
-    
-    basket_id = Column(Integer, primary_key=True, nullable=False)
-    user_id = Column(ForeignKey('users.user_id', ondelete='CASCADE'), index=True)
-    product_id = Column(ForeignKey('products.product_id', ondelete='CASCADE'), index=True)
-    quantity = Column(Integer, CheckConstraint('quantity >= 0'))
 
     

@@ -52,4 +52,3 @@ def add_all_products():
         el_service = ElasticsearchSyncService(el_cl)
         with session_maker_sync() as session:
             el_service.add_all_products(session=session)
-            print(10)

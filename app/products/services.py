@@ -1,6 +1,6 @@
 from pydantic import ValidationError
 from app.email.email_template import new_product_email
-from app.exceptions import HttpExc403Conflict, HttpExc422
+from app.exceptions import HttpExc403Forbidden, HttpExc422UnprocessableEntity
 from app.products.dao import CategoryDao, ProductDao, ProductSyncDao, ReviewDao, ReviewSyncDao
 from app.products.schema import ProductSchema
 from app.products.schema_specifications import specification_schemas_dict
@@ -18,7 +18,7 @@ class ProductService:
     @staticmethod
     def _validate_seller(user):
         if user.role != 'seller':
-            raise HttpExc403Conflict('Нет доступа')
+            raise HttpExc403Forbidden('Нет доступа')
         
     async def _get_class_name(self, product: ProductSchema):
         category_row = await self.category_dao.find_by_filter_one(category_id=product.category_id)
@@ -30,7 +30,7 @@ class ProductService:
             specification_schema(**product.specification)
         except ValidationError as e:
             print(e)
-            raise HttpExc422('')
+            raise HttpExc422UnprocessableEntity('')
         
     async def _add(self, product: ProductSchema):
         product = product.model_dump()

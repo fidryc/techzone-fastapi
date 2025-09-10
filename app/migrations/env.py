@@ -16,8 +16,8 @@ from app.users.models import User, RefreshTokenBL
 from app.stores.models import Store
 from app.products.models import Category, Product
 from app.stores.models import StoreQuantityInfo
-from app.products.models import Review, FavoriteProduct, Basket
-from app.orders.models import OrderType, Order, OrderPickUpDetail, OrderDeliveryDetail, Purchase
+from app.products.models import Review, FavoriteProduct
+from app.orders.models import OrderType, Order, OrderPickUpDetail, OrderDeliveryDetail, Purchase, Basket
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
