@@ -45,14 +45,20 @@ class UserSchema(BaseModel):
             raise ValueError('Неверный формат номера')
         return cls.convert_number(number)
     
+    # @field_validator('email')
+    # def validate_email(cls, email):
+    #     ru = 'mail|bk|list|inbox|yandex|ya|rambler|hotmail|outlook'
+    #     en = 'gmail|yahoo|outlook|hotmail|aol|icloud|me|msn'
+    #     if not any(
+    #         [fullmatch(rf'[a-zA-ZА-Яа-я0-9]+@({ru}).ru', email),
+    #         fullmatch(rf'[a-zA-ZА-Яа-я0-9]+@({en}).com', email)]
+    #         ):
+    #         raise ValueError('Введенный email неверный')
+    #     return email
+    
     @field_validator('email')
     def validate_email(cls, email):
-        ru = 'mail|bk|list|inbox|yandex|ya|rambler|hotmail|outlook'
-        en = 'gmail|yahoo|outlook|hotmail|aol|icloud|me|msn'
-        if not any(
-            [fullmatch(rf'[a-zA-ZА-Яа-я0-9]+@({ru}).ru', email),
-            fullmatch(rf'[a-zA-ZА-Яа-я0-9]+@({en}).com', email)]
-            ):
+        if not fullmatch(r'[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+', email):
             raise ValueError('Введенный email неверный')
         return email
         

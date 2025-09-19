@@ -59,14 +59,14 @@ async def add_product(request: Request, response: Response, product: ProductSche
     await product_service.add_product(product, user, flag_notification=True)
     await session.commit()
     
-@router.post('/')
-async def add_product(request: Request, response: Response, product: ProductSchema, session=Depends(get_session)):
-    user_service = UserService(session)
-    user = await user_service.get_user_from_token(request, response)
-    product_service = ProductService(session)
+# @router.post('/')
+# async def add_product(request: Request, response: Response, product: ProductSchema, session=Depends(get_session)):
+#     user_service = UserService(session)
+#     user = await user_service.get_user_from_token(request, response)
+#     product_service = ProductService(session)
     
-    await product_service.add_product(product, user, flag_notification=True)
-    await session.commit()
+#     await product_service.add_product(product, user, flag_notification=True)
+#     await session.commit()
     
 @router.get('/recomendation', response_model=list[ProductSchema])
 @cache(expire=30)
@@ -80,8 +80,10 @@ async def all(session=Depends(get_session)):
     product_dao = ProductDao(session)
     return await product_dao.all()
 
+
+# Удаление товара
     
-@router.post('/find_by_id')
-async def add_product(product_id: int, session=Depends(get_session)):
-    service = ProductService(session)
-    return await service.product_dao.find_by_id(product_id)
+# @router.post('/find_by_id')
+# async def add_product(product_id: int, session=Depends(get_session)):
+#     service = ProductService(session)
+#     return await service.product_dao.find_by_id(product_id)

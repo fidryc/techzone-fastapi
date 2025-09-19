@@ -8,6 +8,7 @@ from app.config import settings
 from app.email.email_template import register_code
 from app.email.servises import async_send_email
 from app.exceptions import HttpExc401Unauth, HttpExc409Conflict
+from app.orders.dao import OrderDao
 from app.redis.client import redis_client
 from app.redis.utils import redis_record_tries_with_ttl
 from app.users.dao import RefreshTokenBLDao, UserDao
@@ -25,7 +26,10 @@ class UserService:
     exp_refresh_token = timedelta(days=settings.EXP_REFRESH_DAYS).total_seconds()
     
     def __init__(self, session):
+        self.session = session
         self.dao = UserDao(session)
+        self.order_dao = OrderDao(session)
+    
     
     async def create_user_with_verification(self, response: Response, user):
         """
@@ -40,7 +44,8 @@ class UserService:
             await redis_client.set(f'verify_code_user:{user.email}', dumps(data), ex=settings.VER_CODE_EXP_SEC)
             
             create_and_set_token_verif_email(response, user)
-            email_to='f98924746@gmail.com'
+            # поменять в будущем на переданный email
+            email_to='f98924746@gmail.com' 
             msg = register_code(email_to, data['code'])
             await async_send_email(msg)
             
@@ -63,12 +68,37 @@ class UserService:
         validate_tries(data['try'])
         verif_code(code_from_user, data['code'])
         await self.dao.add(**data['user'])
+        
+        await self.session.commit()
+        
         return 'Пользователь успешно создан!'
+    
+    async def delete_user(self, user, response):
+        """
+        
+        Удаляет пользователя вместе с заказами, проверив все ли заказы завершены.
+        Автоматически удаляются детали заказов из order_details таблиц
+        
+        Args:
+            user (User): строка модели Users
+            response (Response): удаление из cookie jwt токенов
+        """
+        active_orders = await self.order_dao.get_active_orders(user.user_id)
+        if active_orders:
+            raise HttpExc409Conflict('Вы не можете удалить аккаунт, так как у вас есть активыне заказы')
+        
+        await self.order_dao.delete_all_user_orders(user.user_id)
+        await self.dao.delete_user(user.user_id)
+        self.logout_user(response)
+        
+        await self.session.commit()
+        
         
     @staticmethod
     def logout_user(response: Response):
         response.delete_cookie('access_token')
         response.delete_cookie('refresh_token')
+        
         
     async def get_user_from_token(self, request: Request, response: Response):
         """
@@ -103,6 +133,7 @@ class UserService:
     
             return user_from_refresh_token
     
+    
     async def auth_user(self, response: Response, user: UserAuthSchema):
         user_in_db = await self.dao.find_user(user.email, user.number)
         print(user_in_db)
@@ -113,7 +144,8 @@ class UserService:
         set_token(response, user_in_db, 'access')
         set_token(response, user_in_db, 'refresh')
         
-    async def send_emails_about_new_product(self, product):
-        users_list_for_send_email = await self.get_users_for_send_emails()
+        
+    # async def send_emails_about_new_product(self, product):
+    #     users_list_for_send_email = await self.get_users_for_send_emails()
         
         

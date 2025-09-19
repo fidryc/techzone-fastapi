@@ -96,6 +96,23 @@ class OrderDao(BaseDao):
         res = await self.session.execute(query)
         print(res)
         return res.scalar()
+    
+    
+    async def delete_all_user_orders(self, user_id: int):
+        query = text('''DELETE FROM orders
+                     WHERE user_id = :user_id''')
+        await self.session.execute(query, params={'user_id': user_id})
+
+
+    async def get_active_orders(self, user_id: int):
+        query = text("""
+                     SELECT order_id
+                     FROM orders
+                     WHERE user_id = :user_id AND 
+                     (status != 'finished' AND status != 'cancelled')
+                     """)
+        return (await self.session.execute(query, params={'user_id': user_id})).scalars().all()
+
 
 class OrderPickUpDetailsDao(BaseDao):
     model = OrderPickUpDetail

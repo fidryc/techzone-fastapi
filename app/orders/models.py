@@ -9,6 +9,7 @@ class OrderType(Base):
     order_type_id = Column(Integer, primary_key=True, nullable=False)
     title = Column(String(length=128))
 
+
 class Order(Base):
     __tablename__ = 'orders'
     
@@ -27,13 +28,16 @@ class OrderPickUpDetail(Base):
     __tablename__ = 'order_pickup_details'
     
     order_pickup_detail_id = Column(Integer, primary_key=True, nullable=False)
-    store_id = Column(ForeignKey('stores.store_id', ondelete='CASCADE'), nullable=False, index=True)
+    store_id = Column(ForeignKey('stores.store_id', ondelete='CASCADE'), index=True)
+    user_id = Column(ForeignKey('users.user_id', ondelete='CASCADE'), index=True)
+    
     
 class OrderDeliveryDetail(Base):
     __tablename__ = 'order_delivery_details'
     
     order_delivery_detail_id = Column(Integer, primary_key=True, nullable=False)
     address = Column(String(length=128), nullable=False)
+    user_id = Column(ForeignKey('users.user_id', ondelete='CASCADE'), index=True)
 
     
 class Purchase(Base):
@@ -41,7 +45,8 @@ class Purchase(Base):
     
     purchase_id = Column(Integer, primary_key=True, nullable=False)
     order_id = Column(ForeignKey('orders.order_id', ondelete='CASCADE'), index=True)
-    product_id = Column(ForeignKey('products.product_id', ondelete='CASCADE'), index=True)
+    product_id = Column(ForeignKey('products.product_id', ondelete='RESTRICT'), index=True)
+    
     
 class Basket(Base):
     __tablename__ = 'baskets'
