@@ -45,17 +45,6 @@ class UserSchema(BaseModel):
             raise ValueError('Неверный формат номера')
         return cls.convert_number(number)
     
-    # @field_validator('email')
-    # def validate_email(cls, email):
-    #     ru = 'mail|bk|list|inbox|yandex|ya|rambler|hotmail|outlook'
-    #     en = 'gmail|yahoo|outlook|hotmail|aol|icloud|me|msn'
-    #     if not any(
-    #         [fullmatch(rf'[a-zA-ZА-Яа-я0-9]+@({ru}).ru', email),
-    #         fullmatch(rf'[a-zA-ZА-Яа-я0-9]+@({en}).com', email)]
-    #         ):
-    #         raise ValueError('Введенный email неверный')
-    #     return email
-    
     @field_validator('email')
     def validate_email(cls, email):
         if not fullmatch(r'[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+', email):
@@ -71,6 +60,81 @@ class UserSchema(BaseModel):
         if not self.email and not self.number:
             raise ValueError('Должен быть указан хотя бы email или number')
         return self
+    
+    
+class UserRegisterEmailSchema(BaseModel):
+    email: Optional[str]
+    number: None = Field(default=None)
+    password: str
+    city: str
+    home_address: str
+    pickup_store: Optional[int] = None
+    
+    
+    @field_validator('email')
+    def validate_email(cls, email):
+        if not fullmatch(r'[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+', email):
+            raise ValueError('Введенный email неверный')
+        return email
+    
+    
+    @field_validator('number')
+    def validate_email(cls, number):
+        if number:
+            raise ValueError('Нельзя передавать number при регистрации по email')
+        return None
+    
+    
+    
+class UserRegisterNumberSchema(BaseModel):
+    email: None = Field(default=None)
+    number: Optional[str] = Field(example=f'+7{random.randint(int('1'*10), int('9'*10))}')
+    password: str
+    city: str
+    home_address: str
+    pickup_store: Optional[int] = None
+    
+    
+    @staticmethod
+    def convert_number(number: str):
+        """
+        Перевод номера в формат +7XXXXXXXXXX
+        """
+        number_for_bd = '+'
+        for ch in number:
+            if ch.isdigit():
+                number_for_bd += ch
+        if number_for_bd[1] == '8':
+            number_for_bd = '+7' + number_for_bd[2:]
+        return number_for_bd
+    
+    
+    @field_validator('number')
+    def validate_number(cls, number):
+        """
+        Валидация русских номеров телефона
+        
+        Варианты:
+            +7XXXXXXXXXX
+            8XXXXXXXXXX
+            +7 (XXX) XXX-XX-XX
+            8 (XXX) XXX-XX-XX
+            +7-XXX-XXX-XX-XX
+            +7 XXX XXX XXXX
+        """
+        
+        pattern = r'(\+7|8)[ -]?\d{3}[ -]?\d{3}[ -]?\d{2}[ -]?\d{2}'
+        if not fullmatch(pattern, number):
+            raise ValueError('Неверный формат номера')
+        return cls.convert_number(number)
+    
+    
+    @field_validator('email')
+    def validate_email(cls, email):
+        if email:
+            raise ValueError('Нельзя передавать email при регистрации по number')
+        return None
+    
     
 class UserAuthSchema(BaseModel):
     email: Optional[str] = Field(None)

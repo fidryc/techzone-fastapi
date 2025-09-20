@@ -7,27 +7,29 @@ from fastapi import (Request, Response, HTTPException)
 import uuid
 from app.exceptions import HttpExc401Unauth
 
-def create_and_set_token_verif_email(
+
+def set_verify_register_token(
     response: Response,
-    user: UserSchema
+    key: str
 ):
     payload = {
-            'user_email': str(user.email),
+            'verify_register_key': str(key),
         }
-    verif_email_token = encode(payload, key=settings.PRIVATE_SECRET_KEY, algorithm=settings.ALGORITM)
-    response.set_cookie('verif_email_token', verif_email_token)
+    verify_register_token = encode(payload, key=settings.PRIVATE_SECRET_KEY, algorithm=settings.ALGORITM)
+    response.set_cookie('verify_register_token', verify_register_token)
+    
 
-def get_verif_token(request: Request):
-    token = request.cookies.get('verif_email_token')
+def get_verify_token(request: Request):
+    token = request.cookies.get('verify_register_token')
     if not token:
-        raise HttpExc401Unauth('Не передан токен подтверждения.')
+        raise HttpExc401Unauth('Не передан токен подтверждения регистрации.')
     try:
         token_payload: dict = decode(token, settings.PUBLIC_SECRET_KEY, settings.ALGORITM, options={"verify_exp": False})
-        if not token_payload.get('user_email', None):
+        if not token_payload.get('verify_register_key', None):
             raise HttpExc401Unauth('Неверный токен подтверждения.')
         return token_payload
     except:
-        raise HttpExc401Unauth('Ошибка декодировки токена подверждения email')
+        raise HttpExc401Unauth('Ошибка декодировки токена подверждения регистрации')
     
 def create_token(
     user: UserSchema,

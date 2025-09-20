@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter
 from app.email.email_template import register_code
 from app.email.servises import send_email
-from app.users.schema import UserAuthSchema, UserSchema
+from app.users.schema import UserAuthSchema, UserRegisterEmailSchema, UserRegisterNumberSchema, UserSchema
 from app.users.servises import UserService
 from fastapi import Depends, Response, Request
 from app.database import get_session
@@ -11,7 +11,29 @@ router = APIRouter(
     prefix='/users',
     tags=['Пользователь']
 )
-
+    
+    
+@router.post('/register_with_email')
+async def register(response: Response, user: UserRegisterEmailSchema, session = Depends(get_session)):
+    users_services = UserService(session)
+    
+    await users_services.create_user_with_verification(response, user)
+    
+    
+@router.post('/register_with_number')
+async def register(response: Response, user: UserRegisterNumberSchema, session = Depends(get_session)):
+    users_services = UserService(session)
+    
+    await users_services.create_user_with_verification(response, user)
+    
+    
+@router.post('/register_with_email')
+async def register(response: Response, user: UserSchema, session = Depends(get_session)):
+    users_services = UserService(session)
+    
+    await users_services.create_user_with_verification(response, user)
+    
+    
 @router.post('/register')
 async def register(response: Response, user: UserSchema, session = Depends(get_session)):
     users_services = UserService(session)
@@ -23,7 +45,7 @@ async def register(response: Response, user: UserSchema, session = Depends(get_s
 async def verify_email_code(request: Request, response: Response, code: int, session = Depends(get_session)):
     users_services = UserService(session)
     
-    await users_services.confirm_email_and_register_user(request, response, code)
+    await users_services.confirm_and_register_user(request, response, code)
 
 
 @router.post('/login')

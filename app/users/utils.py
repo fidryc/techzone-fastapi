@@ -7,6 +7,8 @@ from fastapi import HTTPException
 from app.redis.client import redis_client
 
 from app.config import settings
+from app.users.schema import UserSchema
+
 
 def get_hash(password: str) -> tuple[str, str]:
     """
@@ -18,27 +20,31 @@ def get_hash(password: str) -> tuple[str, str]:
     
     return hashed_password.decode('utf-8')
 
+
 def check_pwd(pwd: str, hash_pwd: str):
     pwd_bytes = pwd.encode('utf-8')
     hash_pwd = hash_pwd.encode('utf-8')
     return checkpw(pwd_bytes, hash_pwd)
 
+
 def random_code():
     return randint(100000, 999999)
 
-def verif_code(user_code, code):
+
+def verify_code(user_code, code):
         if int(user_code) != code:
             raise HTTPException(401, 'Неверный код')
         return True
+    
     
 def validate_tries(tries):
     if tries > settings.MAX_TRIES_EMAIL_CODE:
         raise HTTPException(401, 'Попробуйте ввести email еще раз')
 
-def prepare_user_for_auth(user):
+
+def prepare_user_for_auth(user, code):
     hashed_password = get_hash(user.password)
             
-    code = random_code()
     user_dict = {'email': user.email,
             'hashed_password': hashed_password,
             'city': user.city,
@@ -51,4 +57,5 @@ def prepare_user_for_auth(user):
     }
     
     return data
+
 
