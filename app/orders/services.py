@@ -40,6 +40,7 @@ class OrderPickUpService:
         self.purchase_dao = PurchaseDao(session)
         self.session: AsyncSession = session
         
+        
     async def create_order_pickup(self, user_id: int, order_details: dict):
         try:
             # Получаем product_id, которые лежат в корзине пользователя
@@ -48,7 +49,8 @@ class OrderPickUpService:
                 raise HTTPException(400, 'Пустая корзина')
             
             # возможно стоит объединить в один запрос
-            price: int = await self.basket_dao.price_of_basket(user_id) 
+            price: int = await self.basket_dao.price_of_basket(user_id)
+            order_details['user_id'] = user_id
             # создаем запись в order_details и получаем id тк, в orders есть поле order_details_id
             order_pickup_detail_id: int = await self.order_pickup_details_dao.add_and_return_id(**order_details)
             print(order_pickup_detail_id)
@@ -92,6 +94,7 @@ class OrderDeliveryService:
             # возможно стоит объединить в один запрос
             price: int = await self.basket_dao.price_of_basket(user_id) 
             print(price)
+            order_details['user_id'] = user_id
             # создаем запись в order_details и получаем id тк, в orders есть поле order_details_id
             order_delivery_detail_id: int = await self.order_delivery_detail_dao.add_and_return_id(**order_details)
             print(order_delivery_detail_id)

@@ -20,10 +20,10 @@ async def register(response: Response, user: UserSchema, session = Depends(get_s
     
     
 @router.post('/verify_email_code')
-async def verify_email_code(request: Request, code: int, session = Depends(get_session)):
+async def verify_email_code(request: Request, response: Response, code: int, session = Depends(get_session)):
     users_services = UserService(session)
     
-    await users_services.confirm_email_and_register_user(request, code)
+    await users_services.confirm_email_and_register_user(request, response, code)
 
 
 @router.post('/login')

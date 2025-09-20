@@ -53,7 +53,7 @@ class UserService:
             raise HttpExc409Conflict('Email или номер уже используются')
     
     
-    async def confirm_email_and_register_user(self, request: Request, code_from_user):
+    async def confirm_email_and_register_user(self, request: Request, response: Response, code_from_user):
         """
             Получает email пользователя, который пытается зарегистрироваться, 
             достает все данные пользователя вместе с верным кодом.
@@ -70,7 +70,7 @@ class UserService:
         await self.dao.add(**data['user'])
         
         await self.session.commit()
-        
+        response.delete_cookie('verif_email_token')
         return 'Пользователь успешно создан!'
     
     async def delete_user(self, user, response):
