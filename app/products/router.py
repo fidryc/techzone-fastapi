@@ -8,7 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from app.database import get_session, get_session_sync
 from app.products.services import ProductService
 from app.tasks.tasks import send_email_about_new_product
-from app.users.servises import UserService
+from app.users.services import UserService
 
 from elasticsearch import AsyncElasticsearch
 from app.elasticsearch.services import ElasticsearchService
@@ -18,16 +18,20 @@ from datetime import datetime
 
 from app.database import session_maker_sync
 
+from typing import Annotated
+
 router = APIRouter(
     prefix='/products',
     tags=['Работа с товарами']
 )
+
 
 @router.get('/search/{query_text}')
 @cache(expire=180)
 async def get_products(query_text: str, el_cl: AsyncElasticsearch = Depends(get_elasticsearch_cl)):
     el_service = ElasticsearchService(el_cl)
     return await el_service.search_products(query_text)
+
 
 @router.get('/catalog/{category}/')
 @cache(expire=180)
@@ -59,15 +63,7 @@ async def add_product(request: Request, response: Response, product: ProductSche
     await product_service.add_product(product, user, flag_notification=True)
     await session.commit()
     
-# @router.post('/')
-# async def add_product(request: Request, response: Response, product: ProductSchema, session=Depends(get_session)):
-#     user_service = UserService(session)
-#     user = await user_service.get_user_from_token(request, response)
-#     product_service = ProductService(session)
-    
-#     await product_service.add_product(product, user, flag_notification=True)
-#     await session.commit()
-    
+        
 @router.get('/recomendation', response_model=list[ProductSchema])
 @cache(expire=30)
 async def recomendation(request: Request, response: Response, session=Depends(get_session)):
@@ -75,15 +71,14 @@ async def recomendation(request: Request, response: Response, session=Depends(ge
     product_service = ProductService(session)
     return await product_service.recomendation(user.user_id)
 
+
 @router.get('/all')
 async def all(session=Depends(get_session)):
     product_dao = ProductDao(session)
     return await product_dao.all()
 
-
-# Удаление товара
     
-# @router.post('/find_by_id')
-# async def add_product(product_id: int, session=Depends(get_session)):
-#     service = ProductService(session)
-#     return await service.product_dao.find_by_id(product_id)
+@router.post('/find_by_id')
+async def add_product(product_id: int, session=Depends(get_session)):
+    service = ProductService(session)
+    return await service.get_product_by_id(product_id)

@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     
     INDEX_PRODUCTS: str
     
+    LIMIT_SECONDS_GET_CODE: int
+    
     class Config:
         env_file = '.env'
         

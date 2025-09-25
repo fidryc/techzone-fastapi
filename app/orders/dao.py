@@ -104,7 +104,7 @@ class OrderDao(BaseDao):
         await self.session.execute(query, params={'user_id': user_id})
 
 
-    async def get_active_orders(self, user_id: int):
+    async def get_active_user_orders(self, user_id: int):
         query = text("""
                      SELECT order_id
                      FROM orders

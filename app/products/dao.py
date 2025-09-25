@@ -2,7 +2,7 @@ from abc import abstractmethod
 from app.dao import BaseDao, BaseSyncDao
 from sqlalchemy import Integer, between, text, join, select, cast, update
 
-from app.products.models import Category, Product
+from app.products.models import Category, HistoryQueryUser, Product
 
 class ProductDao(BaseDao):
     # async def get_category_products(self, category):
@@ -48,13 +48,12 @@ class ProductDao(BaseDao):
     async def find_by_id(self, product_id):
         query = select(Product).where(Product.product_id==product_id)
         product = (await self.session.execute(query)).scalar_one_or_none()
-        product.views += 1
-        query_update = update(Product).where(Product.product_id==product_id).values(views=product.views)
-        await self.session.execute(query_update)
-        await self.session.commit()
         return product
+    
+    
     def _category_filter(self, query, category):
         return query.join(Category, Product.category_id == Category.category_id).where(Category.title == category)
+    
     
     def _price_filter(self, query, price: str):
         """
@@ -217,4 +216,8 @@ class ReviewSyncDao(BaseDao):
 
 class CategoryDao(BaseDao):
     model = Category
+    
+
+class HistoryQueryTextDao(BaseDao):
+    model = HistoryQueryUser
     

@@ -1,19 +1,19 @@
+from typing import TypedDict
 import json
 from random import randint
+from re import fullmatch
 
 from bcrypt import checkpw, gensalt, hashpw
 from fastapi import HTTPException
+from pydantic import BaseModel
 
 from app.redis.client import redis_client
 
 from app.config import settings
-from app.users.schema import UserSchema
+from app.users.schema import UserRegisterEmailSchema, UserRegisterNumberSchema
 
 
-def get_hash(password: str) -> tuple[str, str]:
-    """
-    Хеширует пароль с солью и возвращает пароль и соль
-    """
+def get_hash(password: str) -> str:
     salt = gensalt()
     password_bytes = password.encode('utf-8')
     hashed_password = hashpw(password_bytes, salt)
@@ -21,41 +21,45 @@ def get_hash(password: str) -> tuple[str, str]:
     return hashed_password.decode('utf-8')
 
 
-def check_pwd(pwd: str, hash_pwd: str):
+def check_pwd(pwd: str, hash_pwd: str) -> bool:
     pwd_bytes = pwd.encode('utf-8')
-    hash_pwd = hash_pwd.encode('utf-8')
-    return checkpw(pwd_bytes, hash_pwd)
+    hash_pwd_bytes = hash_pwd.encode('utf-8')
+    return checkpw(pwd_bytes, hash_pwd_bytes)
 
 
-def random_code():
+def random_code() -> int:
     return randint(100000, 999999)
 
 
-def verify_code(user_code, code):
-        if int(user_code) != code:
-            raise HTTPException(401, 'Неверный код')
-        return True
+def verify_code(user_code: str, correct_code: int) -> bool:
+    try:
+        return int(user_code) == correct_code
+    except ValueError:
+        return False
     
     
-def validate_tries(tries):
-    if tries > settings.MAX_TRIES_EMAIL_CODE:
-        raise HTTPException(401, 'Попробуйте ввести email еще раз')
+def valid_attempt(attempt: int) -> bool:
+    return attempt < settings.MAX_TRIES_EMAIL_CODE
 
 
-def prepare_user_for_auth(user, code):
-    hashed_password = get_hash(user.password)
-            
+class UserAuthRedisSchema(TypedDict):
+    user: dict
+    code: int
+    attempt: int
+    
+    
+def prepare_user_for_auth(user: UserRegisterEmailSchema | UserRegisterNumberSchema, code: int) -> UserAuthRedisSchema:
+    '''Создает словарь, чтобы поместить в redis для дальнейшей регистрации'''
+    
     user_dict = {'email': user.email,
-            'hashed_password': hashed_password,
+            'hashed_password': get_hash(user.password),
             'city': user.city,
-            'home_address': user.home_address,
             'number': user.number}
     data = {
         'user': user_dict,
         'code': code,
-        'try': 0
+        'attempt': 0
     }
-    
     return data
 
 

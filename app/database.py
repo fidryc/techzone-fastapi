@@ -1,3 +1,5 @@
+from typing import Annotated
+from fastapi import Depends
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import Session
@@ -17,15 +19,22 @@ session_maker_sync = sessionmaker(engine_sync, class_=Session, expire_on_commit=
 async def get_session():
     async with session_maker() as session:
         try:
+            print('Создание сессии')
             yield session
         finally:
+            print('Закрытие сессии')
             await session.close()
+            
+SessionDep = Annotated[AsyncSession, Depends(get_session)]
+            
+            
 def get_session_sync():
     with session_maker_sync() as session:
         try:
             yield session
         finally:
             session.close()
+            
             
 class Base(DeclarativeBase):
     pass

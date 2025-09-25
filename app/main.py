@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from aioredis import Redis
 from fastapi import FastAPI
 from app.users.router import router as users_router
 from app.redis.client import redis_client
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
     app.state.el_cl = AsyncElasticsearch(hosts=f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}")
     app.state.el_cl_sync = Elasticsearch(hosts=f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}")
     redis = aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}')
+    app.state.redis_client = redis
     FastAPICache.init(RedisBackend(redis), prefix='fastapi-cache')
     yield
     el_cl: AsyncElasticsearch = app.state.el_cl

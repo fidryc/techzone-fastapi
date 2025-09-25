@@ -9,7 +9,7 @@ from fastapi import HTTPException
 from app.products.dao import ProductDao
 
 class BasketService:
-    def __init__(self, session):
+    def __init__(self, session: AsyncSession):
         self.basket_dao = BasketDao(session)
         self.product_dao = ProductDao(session)
         self.session: AsyncSession = session
@@ -19,6 +19,8 @@ class BasketService:
             raise HttpExc422UnprocessableEntity('Такого товара не существует')
         await self.basket_dao.add_product(product_id, user_id)
         await self.session.commit()
+        
+        
 class OrderService:
     def __init__(self, session):
         self.order_dao = OrderDao(session)
@@ -26,11 +28,23 @@ class OrderService:
     async def get_orders(self, user_id):
         orders = await self.order_dao.find_by_filter(user_id = user_id)
         return orders[::-1]
+    
+    
     async def change_status(self, user, order_id, status):
         if user.role not in ('seller', 'admin'):
             raise HttpExc403Forbidden('Нет досупа к изменению этого заказа')
         await self.order_dao.change_status(status, order_id)
         await self.order_dao.session.commit()
+        
+        
+    async def delete_all_user_orders(self, user_id):
+        return await self.delete_all_user_orders(user_id)
+    
+    
+    async def get_active_user_orders(self, user_id):
+        return await self.get_active_user_orders(user_id)
+     
+        
     
 class OrderPickUpService:
     def __init__(self, session):
@@ -54,7 +68,7 @@ class OrderPickUpService:
             # создаем запись в order_details и получаем id тк, в orders есть поле order_details_id
             order_pickup_detail_id: int = await self.order_pickup_details_dao.add_and_return_id(**order_details)
             print(order_pickup_detail_id)
-            # Временный вариант, возможно стоит переписать на запрос, нельзя менять id в базе
+            # Временный вариант, возможно стоит переписать на запрос, нельзя менять order_type_id в базе
             order = {
                 'status': 'new',
                 'order_type_id': 2,

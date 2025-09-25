@@ -51,5 +51,15 @@ class FavoriteProduct(Base):
     user_id = Column(ForeignKey('users.user_id', ondelete='CASCADE'), index=True)
     product_id = Column(ForeignKey('products.product_id', ondelete='CASCADE'), index=True)
     
+    
+class HistoryQueryUser(Base):
+    '''История текстовых поисков продуктов пользователя'''
+    
+    __tablename__ = 'history_text_user'
+    
+    history_text_user_id = Column(Integer, primary_key=True)
+    user_id = Column(ForeignKey('users.user_id', ondelete='CASCADE'), index=True)
+    query_text = Column(ForeignKey('products.product_id', ondelete='CASCADE'), index=True)
+    
 
     

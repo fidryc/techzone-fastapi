@@ -20,3 +20,4 @@ class RefreshTokenBL(Base):
     
     refresh_token_bl_id = Column(Integer, primary_key=True, nullable=False)
     jti = Column(String, nullable=False, unique=True)
+    
