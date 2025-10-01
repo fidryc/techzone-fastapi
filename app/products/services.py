@@ -7,21 +7,22 @@ from app.products.models import Product
 from app.products.schema import ProductSchema
 from app.products.schema_specifications import specification_schemas_dict
 from app.tasks.tasks import send_email_about_new_product
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.users.schema import UserSchema
+from fastapi import HTTPException, status
 
 class ProductService:
-    def __init__(self, session):
+    def __init__(self, session: AsyncSession, product_dao: ProductDao, category_dao: CategoryDao):
         self.product_dao = ProductDao(session)
-        self.product_sync_dao = ProductSyncDao(session)
         self.category_dao = CategoryDao(session)
-        self.review_dao = ReviewDao(session)
-        self.review_sync_dao = ReviewSyncDao(session)
         self.session = session
     
     
     @staticmethod
-    def _validate_seller(user):
+    def _validate_seller(user: UserSchema):
         if user.role != 'seller':
-            raise HttpExc403Forbidden('Нет доступа')
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Нет прав для доступа к этому ресурсу')
         
         
     async def _get_class_name(self, product: ProductSchema):
@@ -56,11 +57,7 @@ class ProductService:
             user_emails = await self.product_dao.get_user_emails_for_send_emails_about_new_product(product)
             for email in user_emails:
                 send_email_about_new_product.delay(email, title=product.title, price=product.price)
-        
-    async def update_ratings(self):
-        ratings = await self.review_dao.rating_of_products()
-        await self.product_dao.update_ratings(ratings)
-        await self.session.commit()
+    
         
         
     async def recomendation(self, user_id):
@@ -70,10 +67,6 @@ class ProductService:
         else:
             return await self.product_dao.get_recomentation(user_id)
         
-        
-    def update_reviews(self):
-        avg_reviews = self.review_sync_dao.rating_of_products()
-        self.product_sync_dao.update_avg_reviews(avg_reviews)
         
     
     async def get_product_by_id(self, product_id):
@@ -87,5 +80,14 @@ class ProductService:
         await self.session.execute(query_update)
         await self.session.commit()
         return product
+    
+class ProductServiceSync:
+    def __init__(self, product_sync_dao: ProductSyncDao, review_sync_dao: ReviewSyncDao):
+        self.product_sync_dao = product_sync_dao
+        self.review_sync_dao = review_sync_dao
+        
+    def update_reviews(self):
+        avg_reviews = self.review_sync_dao.rating_of_products()
+        self.product_sync_dao.update_avg_reviews(avg_reviews)
     
         

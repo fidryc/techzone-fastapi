@@ -100,18 +100,15 @@ class OrderDeliveryService:
     async def create_order_delivery(self, user_id: int, order_details: dict):
         try:
             # Получаем product_id, которые лежат в корзине пользователя
-            basket_of_user: list = await self.basket_dao.basket_of_user(user_id) 
-            print(basket_of_user)
+            basket_of_user: list = await self.basket_dao.basket_of_user(user_id)
             if not basket_of_user:
                 raise HTTPException(400, 'Пустая корзина')
             
             # возможно стоит объединить в один запрос
             price: int = await self.basket_dao.price_of_basket(user_id) 
-            print(price)
             order_details['user_id'] = user_id
             # создаем запись в order_details и получаем id тк, в orders есть поле order_details_id
             order_delivery_detail_id: int = await self.order_delivery_detail_dao.add_and_return_id(**order_details)
-            print(order_delivery_detail_id)
             # Временный вариант, возможно стоит переписать на запрос, нельзя менять id в базе
             order = {
                 'status': 'new',

@@ -4,13 +4,13 @@ from random import randint
 from re import fullmatch
 
 from bcrypt import checkpw, gensalt, hashpw
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 from pydantic import BaseModel
 
 from app.redis.client import redis_client
 
 from app.config import settings
-from app.users.schema import UserRegisterEmailSchema, UserRegisterNumberSchema
+from app.users.schema import UserAuthRedisSchema, UserRegisterEmailSchema, UserRegisterNumberSchema
 
 
 def get_hash(password: str) -> str:
@@ -37,21 +37,16 @@ def verify_code(user_code: str, correct_code: int) -> bool:
     except ValueError:
         return False
     
-    
-def valid_attempt(attempt: int) -> bool:
-    return attempt < settings.MAX_TRIES_EMAIL_CODE
-
-
-class UserAuthRedisSchema(TypedDict):
-    user: dict
-    code: int
-    attempt: int
+def logout_user(response: Response):
+    response.delete_cookie('access_token')
+    response.delete_cookie('refresh_token')
     
     
 def prepare_user_for_auth(user: UserRegisterEmailSchema | UserRegisterNumberSchema, code: int) -> UserAuthRedisSchema:
     '''Создает словарь, чтобы поместить в redis для дальнейшей регистрации'''
     
     user_dict = {'email': user.email,
+            'number': user.number,
             'hashed_password': get_hash(user.password),
             'city': user.city,
             'number': user.number}

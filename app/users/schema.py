@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, field_validator, model_validator, Field
 from re import fullmatch
-from typing import Optional
+from typing import Optional, TypedDict
 import random
 
 
@@ -38,7 +38,7 @@ class UserValidateUtils:
             number_for_bd = '+7' + number_for_bd[2:]
         return number_for_bd
     
-    
+
     @classmethod
     def validate_number(cls, number):
         """
@@ -75,25 +75,28 @@ class BaseUserRegisterSchema(BaseModel):
                 return True
         else:
             return False
-        
+       
     @field_validator('password')
+    @classmethod
     def validate_password(cls, password: str):
         if len(password) >= 8 and cls.check_digits(password, 3):
             return password
         raise ValueError('Неверный пароль')
 
-    
+
 class UserRegisterEmailSchema(BaseUserRegisterSchema):
     email: str
     number: None = Field(default=None, exclude=True)
     
     
     @field_validator('email')
+    @classmethod
     def validate_email(cls, email):
         UserValidateUtils.validate_email(email)
     
     
     @field_validator('number')
+    @classmethod
     def validate_email(cls, number):
         if number:
             raise ValueError('Нельзя передавать number при регистрации по email')
@@ -107,11 +110,13 @@ class UserRegisterNumberSchema(BaseUserRegisterSchema):
     
     
     @field_validator('number')
+    @classmethod
     def validate_number(cls, number):
         correct_number = UserValidateUtils.convert_number(number)
         UserValidateUtils.validate_number(correct_number)
     
     @field_validator('email')
+    @classmethod
     def validate_email(cls, email):
         if email:
             raise ValueError('Нельзя передавать email при регистрации по number')
@@ -130,3 +135,9 @@ class UserAuthEmailSchema(UserAuthBaseSchema):
 class UserAuthNumberSchema(UserAuthBaseSchema):
     number: str
     email: None = Field(default=None)
+    
+
+class UserAuthRedisSchema(TypedDict):
+    user: dict
+    code: int
+    attempt: int

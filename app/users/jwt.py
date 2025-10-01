@@ -31,10 +31,7 @@ def get_verify_token(request: Request):
     except:
         raise HttpExc401Unauth('Ошибка декодировки токена подверждения регистрации')
     
-def create_token(
-    user: UserSchema,
-    type: str,
-):
+def create_token(user: UserSchema, type: str):
     jti = str(uuid.uuid4())
     if type == 'access':
         time_exp = datetime.now(timezone.utc) + timedelta(seconds=settings.EXP_SEC)
@@ -72,14 +69,14 @@ def get_access_token(request: Request):
             raise HttpExc401Unauth('Токен access подделан')
         return payload
     except:
-        raise HttpExc401Unauth(401, 'Ошибка декодировки access токена')
+        raise HttpExc401Unauth('Ошибка декодировки access токена')
     
 def get_refresh_token(request: Request):
     token = request.cookies.get('refresh_token')
     if not token:
         raise HttpExc401Unauth('refresh token нет. Авторизуйтесь заново')
     try:
-        payload = decode(token, settings.PUBLIC_SECRET_KEY, settings.ALGORITM,  options={"verify_exp": False})
+        payload: dict = decode(token, settings.PUBLIC_SECRET_KEY, settings.ALGORITM,  options={"verify_exp": False})
         if payload.get('type') != 'refresh':
             raise HttpExc401Unauth('Токен refresh подделан')
         return payload

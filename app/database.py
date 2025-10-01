@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from app.config import settings
+from app.logger import logger
 
 DATABASE_URL = f'postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}'
 DATABASE_URL_SYNC = f'postgresql://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}'
@@ -19,10 +20,10 @@ session_maker_sync = sessionmaker(engine_sync, class_=Session, expire_on_commit=
 async def get_session():
     async with session_maker() as session:
         try:
-            print('Создание сессии')
+            logger.debug(msg='Open session')
             yield session
         finally:
-            print('Закрытие сессии')
+            logger.debug(msg='Close session')
             await session.close()
             
 SessionDep = Annotated[AsyncSession, Depends(get_session)]

@@ -14,3 +14,7 @@ def HttpExc403Forbidden(detail) -> HTTPException:
 def HttpExc422UnprocessableEntity(detail) -> HTTPException:
     return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail)
 
+
+class DataBaseException(Exception): pass
+
+class RefreshTokenBLServiceException(Exception): pass

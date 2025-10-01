@@ -1,5 +1,3 @@
-import asyncio
-
 from elasticsearch import Elasticsearch
 from app.elasticsearch.services import ElasticsearchSyncService
 from app.email.email_template import new_product_email, register_code

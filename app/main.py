@@ -1,17 +1,18 @@
 from contextlib import asynccontextmanager
-from aioredis import Redis
-from fastapi import FastAPI
+from redis.asyncio import Redis
+from fastapi import FastAPI, Request
 from app.users.router import router as users_router
 from app.redis.client import redis_client
 from app.products.router import router as products_router
 from elasticsearch import AsyncElasticsearch, Elasticsearch
 from app.config import settings
 from app.elasticsearch.router import router as el_router
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from redis import asyncio as aioredis
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from app.orders.router import router as orders_router
+from app.logger import logger
+from datetime import datetime, timezone
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,5 +32,11 @@ app.include_router(products_router)
 app.include_router(el_router)
 app.include_router(orders_router)
 
+@app.middleware('http')
+async def check_time(request: Request, call_next):
+    start_time = datetime.now(timezone.utc)
+    response = await call_next(request)
+    logger.debug('Request execution time', extra={'total_seconds': (datetime.now(timezone.utc) - start_time).total_seconds()})
+    return response
 
     

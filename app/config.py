@@ -1,11 +1,15 @@
+from typing import Literal
 from pydantic_settings import BaseSettings
-from pydantic import FilePath
+from pydantic import ConfigDict, FilePath
 from pathlib import Path
 from dotenv import load_dotenv
 
 
 
 class Settings(BaseSettings):
+    MODE: Literal['DEV', 'TEST', 'PROD']
+    LOG_LEVEL: Literal['INFO', 'DEBUG', 'WARNING', 'ERROR']
+
     DB_HOST: str
     DB_PORT: int
     DB_NAME: str
@@ -37,8 +41,7 @@ class Settings(BaseSettings):
     
     LIMIT_SECONDS_GET_CODE: int
     
-    class Config:
-        env_file = '.env'
+    model_config = ConfigDict(env_file='.env')
         
     _private_secret_key_cache: str | None = None
     _public_secret_key_cache: str | None = None

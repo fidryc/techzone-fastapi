@@ -2,11 +2,12 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Path
 from app.email.email_template import register_code
 from app.email.servises import send_email
-from app.users.depends import CurrentUserDep, UserServiceDep
+from app.redis.depends import RedisServiceDep
+from app.users.depends import CurrentUserDep, RegisterServiceDep, UserDaoDep, UserServiceDep
 from app.users.schema import UserAuthEmailSchema, UserAuthNumberSchema, UserRegisterEmailSchema, UserRegisterNumberSchema, UserSchema
-from app.users.services import UserService
+from app.users.services import NotificationServiceFactory, RegisterService, UserService
 from fastapi import Depends, Response, Request
-from app.database import get_session
+from app.database import SessionDep, get_session
 
 router = APIRouter(
     prefix='/users',
@@ -15,43 +16,45 @@ router = APIRouter(
     
     
 @router.post('/register_with_email')
-async def register_with_email(request: Request, response: Response, user: UserRegisterEmailSchema, user_service: UserServiceDep):
-    await user_service.create_user_with_verification(request, response, user)
+async def register_with_email(request: Request, response: Response, user: UserRegisterEmailSchema, redis_service: RedisServiceDep, user_dao: UserDaoDep, session: SessionDep):
+    notification_service = NotificationServiceFactory(user).get_notification_service()
+    register_service = RegisterService(user_dao, redis_service, session)
+    await register_service.initiate_registration(request, response, user, notification_service)
     
     
 @router.post('/register_with_number')
-async def register_with_number(request: Request, response: Response, user: UserRegisterNumberSchema, user_service: UserServiceDep):
-    await user_service.create_user_with_verification(request, response, user)
+async def register_with_number(request: Request, response: Response, user: UserRegisterNumberSchema, redis_service: RedisServiceDep, user_dao: UserDaoDep, session: SessionDep):
+    notification_service = NotificationServiceFactory(user).get_notification_service()
+    register_service = RegisterService(user_dao, redis_service, session)
+    await register_service.initiate_registration(request, response, user, notification_service)
     
     
 @router.post('/verify_code')
-async def verify_code(request: Request, response: Response, code: int, user_service: UserServiceDep):
-    await user_service.confirm_and_register_user(request, response, code)
+async def verify_code(request: Request, response: Response, confirm_code: int, register_service: RegisterServiceDep):
+    await register_service.confirm_and_register_user(request, response, confirm_code)
 
 
 @router.post('/login_with_email')
 async def login_with_email(response: Response, user: UserAuthEmailSchema, user_service: UserServiceDep):
-    await user_service.auth_user(response, user)
+    await user_service.login_user(response, user)
     
     
 @router.post('/login_with_number')
 async def login_with_number(response: Response, user: UserAuthNumberSchema, user_service: UserServiceDep):
-    await user_service.auth_user(response, user)
+    await user_service.login_user(response, user)
     
     
-# дописать
-@router.post('/change_email')
-async def change_email(request: Request, response: Response, new_email: str, session = Depends(get_session)):
-    users_service = UserService(session)
-    user = await users_service.get_user_from_token(request, response)
-    await users_service.change_email(new_email)
+# # дописать
+# @router.post('/change_email')
+# async def change_email(user: CurrentUserDep, user_service: UserServiceDep, new_email):
+#     await user_service.change_email(user, new_email)
     
     
-# дописать
-@router.post('/change_number')
-async def change_number(response: Response, new_number, session = Depends(get_session)):
-    users_services = UserService(session)
-    await users_services.change_number(new_number)
+# # дописать
+# @router.post('/change_number')
+# async def change_number(response: Response, new_number, session = Depends(get_session)):
+#     users_services = UserService(session)
+#     await users_services.change_number(new_number)
 
     
 @router.post('/logout')

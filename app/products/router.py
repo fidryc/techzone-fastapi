@@ -5,7 +5,7 @@ from app.products.dao import ProductDao, ProductSyncDao, ReviewDao
 from app.products.schema import ProductSchema
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from app.database import get_session, get_session_sync
+from app.database import SessionDep, get_session, get_session_sync
 from app.products.services import ProductService
 from app.tasks.tasks import send_email_about_new_product
 from app.users.services import UserService
@@ -36,13 +36,13 @@ async def get_products(query_text: str, el_cl: AsyncElasticsearch = Depends(get_
 @router.get('/catalog/{category}/')
 @cache(expire=180)
 async def get_products(
+    request: Request,
+    session: SessionDep,
     category: str,
     price: str = Query(None),
     rating: float = Query(None),
     months_warranty: int = Query(None),
     country_origin: str = Query(None),
-    session = Depends(get_session),
-    request: Request = None,
     ):
     def_par = {'category', 'price', 'rating', 'months_warranty', 'country_origin'}
     specification_filters = {k: el for k, el in request.query_params.items() if k not in def_par}
