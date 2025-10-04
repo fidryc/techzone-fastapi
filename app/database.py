@@ -38,4 +38,11 @@ def get_session_sync():
             
             
 class Base(DeclarativeBase):
-    pass
+    def __repr__(self):
+        return self.__tablename__
+    
+    def __str__(self):
+        return self.__tablename__
+    
+    def __format__(self, format_spec: str) -> str:
+        return format(self.__tablename__, format_spec)

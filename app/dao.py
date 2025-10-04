@@ -2,6 +2,10 @@ from app.database import session_maker
 from sqlalchemy import insert, values, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
+from app.logger import logger
+from fastapi import HTTPException
+from app.logger import create_msg_db_error
 
 
 class Pass:
@@ -15,27 +19,57 @@ class BaseDao:
     
     async def add(self, **data):
         query = insert(self.model).values(**data)
-        await self.session.execute(query)
+        try:
+            await self.session.execute(query)
+            logger.debug(f'Succefuly add in {self.model}')
+        except SQLAlchemyError:
+            msg = create_msg_db_error(f'Failed add in {self.model}')
+            logger.error(msg, extra=data, exc_info=True)
+            raise HTTPException(status_code=500, detail=f'Ошибка при добавлении данных в {self.model}')
         
     async def find_by_id(self, id):
         query = select(self.model).filter_by(id=id)
-        obj = await self.session.execute(query)
-        return obj.scalar_one_or_none()
+        try:
+            obj = await self.session.execute(query)
+            logger.debug(f'Succefuly find by id in {self.model}')
+            return obj.scalar_one_or_none()
+        except SQLAlchemyError:
+            msg = create_msg_db_error(f'Failed find by id in {self.model}')
+            logger.error(msg, extra={'id': id}, exc_info=True)
+            raise HTTPException(status_code=500, detail=f'Ошибка при поиске строки по id в {self.model}')
+    
         
     async def find_by_filter(self, **filters):
         query = select(self.model).filter_by(**filters)
-        obj = await self.session.execute(query)
-        return obj.scalars().all()
+        try:
+            obj = await self.session.execute(query)
+            logger.debug(f'Succefuly find by filter in {self.model}')
+            return obj.scalars().all()
+        except SQLAlchemyError:
+            msg = create_msg_db_error(f'Failed find by filter in {self.model}')
+            logger.error(msg, extra=filters, exc_info=True)
+            raise HTTPException(status_code=500, detail=f'Ошибка при поиске строк по фильтрам в {self.model}')
     
     async def find_by_filter_one(self, **filters):
         query = select(self.model).filter_by(**filters)
-        obj = await self.session.execute(query)
-        return obj.scalar_one_or_none()
+        try:
+            obj = await self.session.execute(query)
+            logger.debug(f'Succefuly find by filter a row in {self.model}')
+            return obj.scalar_one_or_none()
+        except SQLAlchemyError:
+                msg = create_msg_db_error(f'Failed find by filter a row in {self.model}')
+                logger.error(msg, extra=filters, exc_info=True)
+                raise HTTPException(status_code=500, detail=f'Ошибка при поиске строки по фильтру в {self.model}')
     
     async def all(self):
         query = select(self.model)
-        obj = await self.session.execute(query)
-        return obj.scalars().all()
+        try:
+            obj = await self.session.execute(query)
+            return obj.scalars().all()
+        except SQLAlchemyError:
+            msg = create_msg_db_error(f'Failed find by filter a row in {self.model}')
+            logger.error(msg, extra={'model': self.model}, exc_info=True)
+            raise HTTPException(status_code=500, detail=f'Ошибка при поиске строки по фильтру в {self.model}')
     
 # Синхронный вариант для celery
 class BaseSyncDao:

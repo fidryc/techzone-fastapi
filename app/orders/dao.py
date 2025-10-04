@@ -11,7 +11,8 @@ from fastapi import HTTPException, status
 class BasketDao(BaseDao):
     model = Basket
     
-    async def add_product(self, product_id, user_id):
+    async def add_product(self, product_id: int, user_id: int):
+        """Добавление в корзину товара"""
         logger.debug('Adding product to basket', extra={'product_id': product_id, 'user_id': user_id})
         query = text('''
                      INSERT INTO baskets (product_id, user_id)
@@ -32,7 +33,8 @@ class BasketDao(BaseDao):
                 detail="Failed to add product to basket"
             )
         
-    async def price_of_basket(self, user_id):
+    async def price_of_basket(self, user_id: int) -> float:
+        """Получение стоимости текущей корзины пользователя"""
         logger.debug('Calculating basket price', extra={'user_id': user_id})
         query = text('''
                      SELECT SUM(price) as price
@@ -53,7 +55,8 @@ class BasketDao(BaseDao):
                 detail="Failed to calculate basket price"
             )
         
-    async def basket_of_user(self, user_id) -> list[tuple[int, int]]:
+    async def basket_of_user(self, user_id: int) -> list[tuple[int, int]]:
+        """Получение корзины пользователя"""
         logger.debug('Getting basket contents', extra={'user_id': user_id})
         query = text('''
                      SELECT user_id, product_id
@@ -76,6 +79,7 @@ class BasketDao(BaseDao):
             )
     
     async def delete_basket_of_user(self, user_id) -> list[int]:
+        """Удаление корзины пользователя"""
         logger.debug('Deleting user basket', extra={'user_id': user_id})
         query = text('''
                      DELETE FROM baskets
@@ -101,7 +105,8 @@ class BasketDao(BaseDao):
 class OrderDao(BaseDao):
     model = Order
     
-    async def change_status(self, status, order_id):
+    async def change_status(self, status: str, order_id: int):
+        """Смена статуса заказ"""
         logger.debug('Changing order status', extra={'order_id': order_id, 'new_status': status})
         query = text("""
                      UPDATE orders
@@ -133,6 +138,7 @@ class OrderDao(BaseDao):
             )
         
     async def add_and_return_id(self, **details):
+        """Добавление заказа с возвратом id"""
         logger.debug('Creating new order', extra={'details': details})
         query = insert(self.model).values(**details).returning(Order.order_id)
         try:
@@ -149,6 +155,7 @@ class OrderDao(BaseDao):
             )
     
     async def delete_all_user_orders(self, user_id: int) -> list[int]:
+        """Удаление всех заказов пользователя"""
         logger.debug('Deleting all user orders', extra={'user_id': user_id})
         query = text('''DELETE FROM orders
                      WHERE user_id = :user_id
@@ -166,6 +173,7 @@ class OrderDao(BaseDao):
             )
 
     async def get_active_user_orders(self, user_id: int) -> list[int]:
+        """Получение актуальных заказов пользователя"""
         logger.debug('Getting active user orders', extra={'user_id': user_id})
         query = text('''
                      SELECT order_id
@@ -190,6 +198,7 @@ class OrderPickUpDetailsDao(BaseDao):
     model = OrderPickUpDetail
     
     async def add_and_return_id(self, **details):
+        """Создание заказа с самовывозом и возврат id"""
         logger.debug('Creating order pickup details', extra={'details': details})
         query = insert(self.model).values(**details).returning(OrderPickUpDetail.order_pickup_detail_id)
         try:
@@ -210,6 +219,7 @@ class OrderDeliveryDetailDao(BaseDao):
     model = OrderDeliveryDetail
     
     async def add_and_return_id(self, **details):
+        """Создание заказа с доставкой и возврат id"""
         logger.debug('Creating order delivery details', extra={'details': details})
         query = insert(self.model).values(**details).returning(OrderDeliveryDetail.order_delivery_detail_id)
         try:
@@ -230,6 +240,7 @@ class PurchaseDao(BaseDao):
     model = Purchase
     
     async def add_products_of_order(self, basket_of_user, order_id):
+        """Добавление товаров заказа в purchase"""
         logger.debug('Adding products to order', extra={'order_id': order_id, 'basket_items': len(basket_of_user)})
         data_for_insert = []
         for user_id, product_id in basket_of_user:

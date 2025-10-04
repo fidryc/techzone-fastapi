@@ -1,3 +1,9 @@
+"""
+Файл с моделями pydantic, валидация которых используется при добавлении товара.
+через specification_schemas_dict возвращается нужная схема, по которой проходит валидация
+поля specification продукта
+"""
+
 from typing import Literal
 from pydantic import BaseModel, Field
 
@@ -25,9 +31,7 @@ class TvSchema(BaseModel):
             'has_hdr': '0 or 1',
             'year': 'int >= 1950',
         }
-    
-    
-    
+      
 specification_schemas_dict = {
     TvSchema.__name__: TvSchema,
 }

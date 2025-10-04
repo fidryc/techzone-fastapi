@@ -15,6 +15,7 @@ class ProductSchema(BaseModel):
     sale_percent: Optional[int] = None
     views: Optional[int] = None
     
+    
 class ProductReturnSchema(BaseModel):
     product_id: int
     title: str

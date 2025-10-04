@@ -1,8 +1,7 @@
 from app.dao import BaseDao
-from app.exceptions import DataBaseException, HttpExc409Conflict
 from app.users.models import User, RefreshTokenBL
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from app.logger import create_msg_db_error, logger
@@ -36,7 +35,7 @@ class UserDao(BaseDao):
        
         if user_by_email or user_by_number:
             logger.warning('User already exists', extra={'email': email, 'number': number})
-            raise HttpExc409Conflict('Пользователь с такой почтой или номером телефона уже существует')
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Пользователь с такой почтой или номером телефона уже существует')
    
    
     async def find_user(self, email, number):

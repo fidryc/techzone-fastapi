@@ -11,11 +11,13 @@ from redis import asyncio as aioredis
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from app.orders.router import router as orders_router
-from app.logger import logger
+from app.redis.router import router as redis_router
 from datetime import datetime, timezone
+from app.logger import logger
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.debug('App start')
     app.state.el_cl = AsyncElasticsearch(hosts=f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}")
     app.state.el_cl_sync = Elasticsearch(hosts=f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}")
     redis = aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}')
@@ -24,6 +26,7 @@ async def lifespan(app: FastAPI):
     yield
     el_cl: AsyncElasticsearch = app.state.el_cl
     await el_cl.close()
+    logger.debug('App close')
     
 app = FastAPI(lifespan=lifespan)
 
@@ -31,6 +34,7 @@ app.include_router(users_router)
 app.include_router(products_router)
 app.include_router(el_router)
 app.include_router(orders_router)
+app.include_router(redis_router)
 
 @app.middleware('http')
 async def check_time(request: Request, call_next):

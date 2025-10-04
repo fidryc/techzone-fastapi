@@ -27,9 +27,7 @@ class UserValidateUtils:
     
     @classmethod
     def convert_number(cls, number: str):
-        """
-        Перевод номера в формат +7XXXXXXXXXX
-        """
+        """Перевод номера в формат +7XXXXXXXXXX"""
         number_for_bd = '+'
         for ch in number:
             if ch.isdigit():
