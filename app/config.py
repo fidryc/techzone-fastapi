@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     
     LIMIT_SECONDS_GET_CODE: int
     
+    JWT_ACCESS_COOKIE_NAME: str
+    JWT_REFRESH_COOKIE_NAME: str
+    JWT_VERIFY_REGISTRATION_COOKIE_NAME: str
+    
     model_config = ConfigDict(env_file='.env')
         
     _private_secret_key_cache: str | None = None

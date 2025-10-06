@@ -364,5 +364,5 @@ class RegisterService:
             await self.session.rollback()
             raise HTTPException(status_code=500, detail='Ошибка при завершении регистрации') from e
         finally:
-            response.delete_cookie('verify_register_token')
+            response.delete_cookie(settings.JWT_VERIFY_REGISTRATION_COOKIE_NAME)
             logger.debug('Verify register token cookie deleted')

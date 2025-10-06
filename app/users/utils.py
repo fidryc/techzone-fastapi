@@ -40,8 +40,8 @@ def verify_code(user_code: str, correct_code: int) -> bool:
     
 def logout_user(response: Response):
     """Удаляет из cookie все токены для аутенфикации пользователя"""
-    response.delete_cookie('access_token')
-    response.delete_cookie('refresh_token')
+    response.delete_cookie(settings.JWT_ACCESS_COOKIE_NAME)
+    response.delete_cookie(settings.JWT_REFRESH_COOKIE_NAME)
     
     
 def prepare_user_for_auth(user: UserRegisterEmailSchema | UserRegisterNumberSchema, code: int) -> UserAuthRedisSchema:

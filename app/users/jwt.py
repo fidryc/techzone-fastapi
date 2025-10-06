@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import (Request, Response, HTTPException)
 import uuid
 from app.logger import logger
+from app.config import settings
 
 
 def set_verify_register_token(
@@ -17,13 +18,13 @@ def set_verify_register_token(
             'verify_register_key': str(key),
         }
     verify_register_token = encode(payload, key=settings.PRIVATE_SECRET_KEY, algorithm=settings.ALGORITM)
-    response.set_cookie('verify_register_token', verify_register_token)
+    response.set_cookie(settings.JWT_VERIFY_REGISTRATION_COOKIE_NAME, verify_register_token)
     
 
 def get_verify_token(request: Request) -> dict:
     """Получает токен из cookie для завершения регистрации"""
     
-    token = request.cookies.get('verify_register_token')
+    token = request.cookies.get(settings.JWT_VERIFY_REGISTRATION_COOKIE_NAME)
     if not token:
         raise HTTPException(401, 'Не передан токен подтверждения регистрации.')
     try:
@@ -60,15 +61,15 @@ def set_token(response: Response, user, type):
     """Создает и сохраняет в cookie access или refresh токен в cookie"""
     if type == 'access':
         token = create_token(user, 'access')
-        response.set_cookie('access_token', token, httponly=True)
+        response.set_cookie(settings.JWT_ACCESS_COOKIE_NAME, token, httponly=True)
     if type == 'refresh':
         token = create_token(user, 'refresh')
-        response.set_cookie('refresh_token', token, httponly=True, max_age=int(timedelta(days=settings.EXP_REFRESH_DAYS).total_seconds()))
+        response.set_cookie(settings.JWT_REFRESH_COOKIE_NAME, token, httponly=True, max_age=int(timedelta(days=settings.EXP_REFRESH_DAYS).total_seconds()))
 
 
 def get_access_token(request: Request) -> dict:
     """Получает payload access токена из cookie"""
-    token = request.cookies.get('access_token')
+    token = request.cookies.get(settings.JWT_ACCESS_COOKIE_NAME)
     if not token:
         raise HTTPException(status_code=401, detail='Нет токена для проверки аккаунт')
     try:
@@ -82,7 +83,7 @@ def get_access_token(request: Request) -> dict:
     
 def get_refresh_token(request: Request):
     """Получает payload refresh токена из cookie"""
-    token = request.cookies.get('refresh_token')
+    token = request.cookies.get(settings.JWT_REFRESH_COOKIE_NAME)
     if not token:
         raise HTTPException(401, 'refresh token нет. Авторизуйтесь заново')
     try:
