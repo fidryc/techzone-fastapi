@@ -6,8 +6,8 @@ from fastapi import HTTPException, status
 
 
 class ElasticsearchDao:
-    def __init__(self, el_cl):
-        self.el_cl: AsyncElasticsearch = el_cl
+    def __init__(self, el_cl: AsyncElasticsearch):
+        self.el_cl = el_cl
        
     async def create_index_with_body(self, index_name: str, body: dict):
         try:

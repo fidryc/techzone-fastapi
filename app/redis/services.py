@@ -149,7 +149,7 @@ class RedisService:
                 logger.warning('IP rate limit exceeded', extra={'ip': ip})
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail='Должно пройти время для следующего получения кода'
+                    detail='Должно пройти время для следующей попытки регистрации'
                 )
         except HTTPException :
             raise

@@ -420,4 +420,3 @@ class CategoryDao(BaseDao):
 class HistoryQueryTextDao(BaseDao):
     model = HistoryQueryUser
     
-    

@@ -19,7 +19,13 @@ router = APIRouter(
         path='/register_with_email',
         summary='Инициализация регистрации по почте',
              )
-async def register_with_email(request: Request, response: Response, user: UserRegisterEmailSchema, redis_service: RedisServiceDep, user_dao: UserDaoDep, session: SessionDep):
+async def register_with_email(
+    request: Request,
+    response: Response,
+    user: UserRegisterEmailSchema,
+    redis_service: RedisServiceDep,
+    user_dao: UserDaoDep,
+    session: SessionDep):
     """
     Инициализация регистрации по почте
     

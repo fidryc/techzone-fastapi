@@ -43,3 +43,8 @@ class ProductReturnSchema(BaseModel):
     sale_percent: Optional[int] = None
     views: Optional[int] = None
     
+
+class HistoryQueryUserSchema(BaseModel):
+    history_text_user_id: int
+    user_id: int
+    query_text: str

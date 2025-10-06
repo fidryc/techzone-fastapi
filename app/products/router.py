@@ -1,8 +1,8 @@
 import functools
 from fastapi import APIRouter, Depends, Query, Request, Response
 from app.elasticsearch.depends import ElasticsearchServiceDep
-from app.products.depends import ProductDaoDep, ProductServiceDep
-from app.products.schema import ProductResponseSchema, ProductSchema
+from app.products.depends import HistoryQueryTextServiceDep, ProductDaoDep, ProductServiceDep, SearchHistoryServiceDep
+from app.products.schema import HistoryQueryUserSchema, ProductResponseSchema, ProductSchema
 
 from app.database import SessionDep, get_session
 from app.products.services import ProductService
@@ -17,9 +17,11 @@ router = APIRouter(
 )
 
 
-@router.get('/search/{query_text}', summary='Поиск товаров')
+@router.get('/search_products/{query_text}', summary='Поиск товаров по текстовому запросу')
 @cache(expire=180)
-async def get_products(query_text: str, el_service: ElasticsearchServiceDep) -> list[ProductResponseSchema]:
+async def search_products(
+    query_text: str,
+    el_service: ElasticsearchServiceDep) -> list[ProductResponseSchema]:
     """
     Поиск товаров по текстовому запросу
     
@@ -34,6 +36,30 @@ async def get_products(query_text: str, el_service: ElasticsearchServiceDep) -> 
     return await el_service.search_products(query_text)
 
 
+@router.post('/search_products_with_history/{query_text}', summary='Поиск товаров по текстовому запросу с сохранением истории')
+@cache(expire=180)
+async def search_products_with_history(
+    query_text: str,
+    search_history_service: SearchHistoryServiceDep,
+    user: CurrentUserDep) -> list[ProductResponseSchema]:
+    """
+    Поиск товаров по текстовому запросу с добавлением запроса в историю
+    
+    Args:
+        query_text: текст для поиска товаров
+    
+    Returns:
+        Список найденных товаров
+    """
+    return await search_history_service.search_product(user_id=user.user_id, query=query_text)
+
+@router.get('/get_history_queries')
+async def get_history_queries(
+    user: CurrentUserDep,
+    hqt_service: HistoryQueryTextServiceDep) -> list[HistoryQueryUserSchema]:
+    return await hqt_service.get_history(user.user_id)
+    
+    
 @router.get('/catalog/{category}/', summary='Получение товаров по категории с фильтрами')
 @cache(expire=180)
 async def get_products(

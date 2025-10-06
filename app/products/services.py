@@ -228,7 +228,6 @@ class HistoryQueryTextService:
     async def add_history_query(self, user_id: int, query: str): 
         """Добавление в историю текстового запроса"""
         try:
-            logger.debug('Start add the text query to db table')
             await self.hqt_dao.add(user_id=user_id, query_text=query)
             logger.debug('Success add the text query to db table')
         except SQLAlchemyError as e:
@@ -237,12 +236,40 @@ class HistoryQueryTextService:
         except Exception as e:
             logger.warning('Unknow error. Failed add the text quert to db table')
             raise HTTPException(status_code=500, detail='Неизвестная ошибка при добавлении текстового запроса в базу данных') from e
+    
+    async def get_history(self, user_id: int): 
+        """Получение истории запросов"""
+        try:
+            result = await self.hqt_dao.find_by_filter(user_id=user_id)
+            logger.debug('Success get history', extra={'user_id': user_id})
+            return result
+        except SQLAlchemyError as e:
+            logger.warning('Error db: Failed add the text query to db table')
+            raise HTTPException(status_code=500, detail='Ошибка при добавлении запроса в таблицу с историей текстовых запросов') from e
+        except Exception as e:
+            logger.warning('Unknow error. Failed add the text quert to db table')
+            raise HTTPException(status_code=500, detail='Неизвестная ошибка при добавлении текстового запроса в базу данных') from e
         
         
-class SearchService:
-    def __init__(self, el_service: ElasticsearchService, hqt_service: HistoryQueryTextService):
+class SearchHistoryService:
+    def __init__(self, session: AsyncSession, el_service: ElasticsearchService, hqt_service: HistoryQueryTextService):
+        self.session = session
         self.el_service = el_service
         self.hqt_service = hqt_service
     
-    async def search_product(user_id, query: str) -> list[ProductSchema]:
-        pass
+    async def search_product(self, user_id, query: str) -> list[ProductSchema]:
+        try:
+            await self.hqt_service.add_history_query(user_id, query)
+            products = await self.el_service.search_products(query)
+            logger.debug('Find products with add to history')
+            await self.session.commit()
+            return products
+        except HTTPException as e:
+            logger.warning('Failed search products with add to history',
+                           extra={'user_id': user_id, 'query': query},
+                           exc_info=True)
+            await self.session.rollback()
+            raise
+
+            
+            
