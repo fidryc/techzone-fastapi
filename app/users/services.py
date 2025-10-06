@@ -185,7 +185,14 @@ class UserService:
         except Exception:
             logger.error('Unexpected error during login', extra={'email': user.email, 'number': user.number}, exc_info=True)
             raise HTTPException(status_code=500, detail='Ошибка при авторизации')
-
+        
+    def logout_user(self, response: Response):
+        try:
+            logout_user(response)
+            logger.debug('Logout user')
+        except Exception as e:
+            logger.warning('Failed logout', exc_info=True)
+            raise HTTPException(status_code=500, detail='Ошибка при выходе с аккаунт') from e
 
 class NotificationService(ABC):
     """Абстрактный класс для сервиса отправки уведомлений"""
@@ -208,14 +215,13 @@ class NotificationEmailService(NotificationService):
     def get_user_identifier(self) -> str:
         return self.user.email
         
-    async def send_verification_code(self, code):
+    def send_verification_code(self, code):
         """Отправка кода на почту"""
         try:
             recipient = self.get_user_identifier()
             # TODO: поменять хардкод email
             recipient = "f98924746@gmail.com"
-            msg = register_code(recipient, code)
-            await async_send_email(msg)
+            send_email_code.delay(recipient, code)
             logger.info('Verification code sent to email', extra={'recipient': self.user.email})
         except Exception:
             logger.error('Failed to send verification code to email', extra={'recipient': self.user.email}, exc_info=True)
@@ -228,14 +234,13 @@ class NotificationNumberService(NotificationService):
     def get_user_identifier(self) -> str:
         return self.user.number
 
-    async def send_verification_code(self, code):
+    def send_verification_code(self, code):
         """Отправка кода на номер телефона"""
         try:
             # TODO: Сделать отправку кода в будущем
             recipient = self.get_user_identifier()
             recipient = "f98924746@gmail.com"
-            msg = register_code(recipient, code)
-            await async_send_email(msg)
+            send_email_code.delay(recipient, code)
             logger.info('Verification code sent to number', extra={'recipient': self.user.number})
         except Exception:
             logger.error('Failed to send verification code to number', extra={'recipient': self.user.number}, exc_info=True)
@@ -302,15 +307,15 @@ class RegisterService:
             
             await self.redis_service.set_user_auth_data(user_identifier, data)
             set_verify_register_token(response, user_identifier)
-            send_email_code.delay(user.email, data['code'])
+            notification_service.send_verification_code(code=data['code'])
             # await notification_service.send_verification_code(data['code'])
             
             logger.info('Registration initiated', extra={'user_identifier': user_identifier, 'ip': request.client.host})
         except HTTPException:
             raise
-        except Exception:
+        except Exception as e:
             logger.error('Failed to initiate registration', extra={'email': user.email, 'number': user.number, 'ip': request.client.host}, exc_info=True)
-            raise HTTPException(status_code=500, detail='Ошибка при инициализации регистрации')
+            raise HTTPException(status_code=500, detail='Ошибка при инициализации регистрации') from e
         
     async def confirm_and_register_user(
         self, request: Request, response: Response, code_from_user: str
@@ -354,10 +359,10 @@ class RegisterService:
             
         except HTTPException:
             raise
-        except Exception:
+        except Exception as e:
             logger.error('Failed to confirm and register user', extra={'verify_key': verify_register_key}, exc_info=True)
             await self.session.rollback()
-            raise HTTPException(status_code=500, detail='Ошибка при завершении регистрации')
+            raise HTTPException(status_code=500, detail='Ошибка при завершении регистрации') from e
         finally:
             response.delete_cookie('verify_register_token')
             logger.debug('Verify register token cookie deleted')

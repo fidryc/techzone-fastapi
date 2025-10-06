@@ -49,7 +49,7 @@ class RedisService:
             data = await redis_get_data(key)
             self.validate_data(data)
             
-            # Увеличиваем попытку, чтобы пользователь не мог слишком часто пытаться
+            # Увеличиваем попытку, чтобы пользователь не мог слишком часто пытаться ввести код
             data['attempt'] += 1
             await self.redis_client.set(key, json.dumps(data), ex=ttl)
             
@@ -86,7 +86,7 @@ class RedisService:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail='Ошибка при сохранении данных в Redis'
-            )
+            ) from e
         except Exception as e:
             logger.error('Unexpected error saving user auth data', extra={'user_identifier': user_identifier}, exc_info=True)
             raise HTTPException(
@@ -151,14 +151,14 @@ class RedisService:
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     detail='Должно пройти время для следующего получения кода'
                 )
-        except HTTPException:
+        except HTTPException :
             raise
         except RedisError as e:
             logger.error('Redis error validating IP limit', extra={'ip': ip}, exc_info=True)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail='Ошибка при проверке лимита IP'
-            )
+            ) from e
          
     async def _set_limit_for_ip(self, ip: str):
         """Сохраняет данные о получении кода по ip"""
@@ -174,7 +174,7 @@ class RedisService:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail='Ошибка при установке лимита IP'
-            )
+            ) from e
        
     async def processing_limit_ip(self, ip: str):
         """Обработка ограничения получения кодов по ip"""

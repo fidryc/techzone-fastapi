@@ -108,10 +108,10 @@ class ElasticsearchService:
         }
         try:
             logger.debug('Searching products', extra={'query': query_text})
-            results = await self.el_dao.el_cl.search(index=settings.INDEX_PRODUCTS, body=body)
-            hits_count = len(results.get('hits', {}).get('hits', []))
+            result = await self.el_dao.el_cl.search(index=settings.INDEX_PRODUCTS, body=body)
+            hits_count = len(result.get('hits', {}).get('hits', []))
             logger.info('Products search completed', extra={'query': query_text, 'hits': hits_count})
-            return results
+            return self._prepare_products(result)
         except ConnectionError as e:
             logger.error('Elasticsearch connection error', extra={'query': query_text}, exc_info=True)
             raise HTTPException(
@@ -130,8 +130,14 @@ class ElasticsearchService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail='Непредвиденная ошибка при поиске продуктов'
             )
-
-
+            
+    def _prepare_products(self, el_response: dict):
+        result = []
+        for el in el_response.get('hits', dict).get('hits', False):
+            result.append(el['_source'])
+        return result
+    
+    
 # Синхронный вариант для celery
 class ElasticsearchSyncService:
     def __init__(self, el_cl):

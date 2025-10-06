@@ -1,6 +1,7 @@
 from pydantic import ValidationError
 from sqlalchemy import update
-from app.products.dao import CategoryDao, ProductDao, ProductSyncDao, ReviewSyncDao
+from app.elasticsearch.services import ElasticsearchService
+from app.products.dao import CategoryDao, HistoryQueryTextDao, ProductDao, ProductSyncDao, ReviewSyncDao
 from app.products.models import Category, Product
 from app.products.schema import ProductSchema
 from app.products.schema_specifications import specification_schemas_dict
@@ -9,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.users.schema import UserSchema
 from fastapi import HTTPException, status
 from app.logger import logger
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class ProductServiceSync:
@@ -217,3 +219,30 @@ class ProductService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail='Ошибка при получении продукта'
             )
+     
+            
+class HistoryQueryTextService:
+    def __init__(self, hqt_dao: HistoryQueryTextDao):
+        self.hqt_dao = hqt_dao
+        
+    async def add_history_query(self, user_id: int, query: str): 
+        """Добавление в историю текстового запроса"""
+        try:
+            logger.debug('Start add the text query to db table')
+            await self.hqt_dao.add(user_id=user_id, query_text=query)
+            logger.debug('Success add the text query to db table')
+        except SQLAlchemyError as e:
+            logger.warning('Error db: Failed add the text query to db table')
+            raise HTTPException(status_code=500, detail='Ошибка при добавлении запроса в таблицу с историей текстовых запросов') from e
+        except Exception as e:
+            logger.warning('Unknow error. Failed add the text quert to db table')
+            raise HTTPException(status_code=500, detail='Неизвестная ошибка при добавлении текстового запроса в базу данных') from e
+        
+        
+class SearchService:
+    def __init__(self, el_service: ElasticsearchService, hqt_service: HistoryQueryTextService):
+        self.el_service = el_service
+        self.hqt_service = hqt_service
+    
+    async def search_product(user_id, query: str) -> list[ProductSchema]:
+        pass

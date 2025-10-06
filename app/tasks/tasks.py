@@ -1,5 +1,5 @@
 from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import ElasticsearchException
+from elasticsearch.exceptions import ConnectionError
 from app.elasticsearch.services import ElasticsearchSyncService
 from app.products.services import ProductServiceSync
 from app.tasks.celery import app
@@ -19,7 +19,7 @@ def update_product_index():
             with session_maker_sync() as session:
                 el_service.add_all_products(session=session)
         logger.info('Product index update completed successfully')
-    except ElasticsearchException as e:
+    except ConnectionError as e:
         logger.error('Elasticsearch error during index update', exc_info=True)
         raise
     except Exception as e:

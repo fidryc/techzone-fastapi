@@ -32,7 +32,8 @@ class ProductDao(BaseDao):
             for key, val in specification_filters.items():
                 query = self._specification_filter_eq(query, key, val)
             
-            results = (await self.session.execute(query)).mappings().all()
+            results = [el.Product for el in (await self.session.execute(query)).all()]
+            
             logger.debug('Products filtered successfully', extra={
                 'filters_count': len(filters_not_none),
                 'spec_filters_count': len(specification_filters),
@@ -418,3 +419,5 @@ class CategoryDao(BaseDao):
 
 class HistoryQueryTextDao(BaseDao):
     model = HistoryQueryUser
+    
+    

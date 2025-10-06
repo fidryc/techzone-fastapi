@@ -16,4 +16,4 @@ def send_email_code(email, code):
     # для теста пока стоит мой email, поставить потом email
     email_msg = register_code('f98924746@gmail.com', code)
     send_email(email_msg)
-    logger.debug()
+    logger.debug('Send registration code')

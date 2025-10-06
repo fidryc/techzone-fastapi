@@ -45,10 +45,10 @@ class BaseDao:
             obj = await self.session.execute(query)
             logger.debug(f'Succefuly find by filter in {self.model}')
             return obj.scalars().all()
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             msg = create_msg_db_error(f'Failed find by filter in {self.model}')
             logger.error(msg, extra=filters, exc_info=True)
-            raise HTTPException(status_code=500, detail=f'Ошибка при поиске строк по фильтрам в {self.model}')
+            raise HTTPException(status_code=500, detail=f'Ошибка при поиске строк по фильтрам в {self.model}') from e
     
     async def find_by_filter_one(self, **filters):
         query = select(self.model).filter_by(**filters)

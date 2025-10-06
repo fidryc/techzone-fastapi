@@ -31,8 +31,8 @@ def get_verify_token(request: Request) -> dict:
         if not token_payload.get('verify_register_key', None):
             raise HTTPException(401, 'Неверный токен подтверждения.')
         return token_payload
-    except:
-        raise HTTPException(401, 'Ошибка декодировки токена подверждения регистрации')
+    except Exception as e:
+        raise HTTPException(401, 'Ошибка декодировки токена подверждения регистрации') from e
     
     
 def create_token(user: UserSchema, type: str) -> str:

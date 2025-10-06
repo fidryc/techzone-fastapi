@@ -1,11 +1,13 @@
+from typing import Literal
 from fastapi import APIRouter, Depends, Request, Response
 
 from app.database import SessionDep, get_session
-from app.orders.schema import OrderDeliveryDetailSchema, OrderPickUpDetailSchema
+from app.orders.schema import OrderDeliveryDetailSchema, OrderPickUpDetailSchema, OrderSchema
 from app.orders.services import BasketService, OrderDeliveryService, OrderPickUpService, OrderService
 from app.products.services import ProductService
 from app.users.depends import CurrentUserDep
 from app.users.services import UserService
+from fastapi_cache.decorator import cache
 
 router = APIRouter(
     prefix='/orders',
@@ -65,7 +67,8 @@ async def create_order_delivery(user: CurrentUserDep, session: SessionDep, order
 
 
 @router.get('/get_orders', summary='Получение списка заказов')
-async def get_orders(user: CurrentUserDep, session: SessionDep):
+@cache(expire=120)
+async def get_orders(user: CurrentUserDep, session: SessionDep) -> list[OrderSchema]:
     """
     Получение списка заказов пользователя
     
@@ -78,8 +81,12 @@ async def get_orders(user: CurrentUserDep, session: SessionDep):
     return await order_service.get_orders(user_id = user.user_id)
 
 
-@router.post('/set_status', summary='Изменение статуса заказа')
-async def set_status(status: str, order_id: int, user: CurrentUserDep, session: SessionDep):
+@router.patch('/set_status', summary='Изменение статуса заказа')
+async def set_status(
+        status: Literal['new', 'confirmed', 'preparing', 'delivered', 'ready', 'finished', 'cancelled'],
+        order_id: int,
+        user: CurrentUserDep,
+        session: SessionDep):
     """
     Изменение статуса заказа
     

@@ -18,21 +18,9 @@ class UserDao(BaseDao):
         user_by_number = None
         
         if email:
-            try:
-                user_by_email = await self.find_by_filter(email=email)
-            except SQLAlchemyError:
-                msg = create_msg_db_error('Failed find user by email')
-                logger.error(msg, extra={'email': email}, exc_info=True)
-                raise HTTPException(status_code=500, detail='Ошибка при проверке email в базе данных')
-        
+            user_by_email = await self.find_by_filter(email=email)
         if number:
-            try:
-                user_by_number = await self.find_by_filter(number=number)
-            except SQLAlchemyError:
-                msg = create_msg_db_error('Failed find user by number')
-                logger.error(msg, extra={'number': number}, exc_info=True)
-                raise HTTPException(status_code=500, detail='Ошибка при проверке номера телефона в базе данных')
-       
+            user_by_number = await self.find_by_filter(number=number)
         if user_by_email or user_by_number:
             logger.warning('User already exists', extra={'email': email, 'number': number})
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Пользователь с такой почтой или номером телефона уже существует')

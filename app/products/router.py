@@ -2,7 +2,7 @@ import functools
 from fastapi import APIRouter, Depends, Query, Request, Response
 from app.elasticsearch.depends import ElasticsearchServiceDep
 from app.products.depends import ProductDaoDep, ProductServiceDep
-from app.products.schema import ProductSchema
+from app.products.schema import ProductResponseSchema, ProductSchema
 
 from app.database import SessionDep, get_session
 from app.products.services import ProductService
@@ -19,7 +19,7 @@ router = APIRouter(
 
 @router.get('/search/{query_text}', summary='Поиск товаров')
 @cache(expire=180)
-async def get_products(query_text: str, el_service: ElasticsearchServiceDep):
+async def get_products(query_text: str, el_service: ElasticsearchServiceDep) -> list[ProductResponseSchema]:
     """
     Поиск товаров по текстовому запросу
     
@@ -44,7 +44,7 @@ async def get_products(
     rating: float = Query(None),
     months_warranty: int = Query(None),
     country_origin: str = Query(None),
-    ):
+    ) -> list[ProductResponseSchema]:
     """
     Получение товаров по категории с применением фильтров
     
@@ -73,7 +73,7 @@ async def get_products(
     
     
 @router.post('/add_product', summary='Добавление нового товара')
-async def add_product(product: ProductSchema, session: SessionDep, user: CurrentUserDep, product_service: ProductServiceDep):
+async def add_product(product: ProductSchema, session: SessionDep, user: CurrentUserDep, product_service: ProductServiceDep, flag_notification: bool):
     """
     Добавление нового товара в систему
     
@@ -89,9 +89,9 @@ async def add_product(product: ProductSchema, session: SessionDep, user: Current
     await session.commit()
     
         
-@router.get('/recomendation', summary='Получение рекомендаций', response_model=list[ProductSchema])
+@router.get('/recomendation', summary='Получение рекомендаций')
 @cache(expire=30)
-async def recomendation(user: CurrentUserDep, product_service: ProductServiceDep):
+async def recomendation(user: CurrentUserDep, product_service: ProductServiceDep) -> list[ProductResponseSchema]:
     """
     Получение персональных рекомендаций товаров
     
@@ -108,7 +108,7 @@ async def recomendation(user: CurrentUserDep, product_service: ProductServiceDep
 
 
 @router.get('/all', summary='Получение всех товаров')
-async def all(product_dao: ProductDaoDep):
+async def all(product_dao: ProductDaoDep) -> list[ProductResponseSchema]:
     """
     Получение полного списка всех товаров
     
@@ -120,8 +120,8 @@ async def all(product_dao: ProductDaoDep):
     return await product_dao.all()
 
     
-@router.post('/find_by_id', summary='Поиск товара по ID')
-async def add_product(product_service: ProductServiceDep, product_id: int):
+@router.get('/find_by_id', summary='Поиск товара по ID')
+async def find_by_id(product_service: ProductServiceDep, product_id: int) -> ProductResponseSchema:
     """
     Поиск товара по идентификатору
     
