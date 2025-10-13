@@ -12,6 +12,7 @@ from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from app.orders.router import router as orders_router
 from app.redis.router import router as redis_router
+from app.stores.router import router as store_router
 from datetime import datetime, timezone
 from app.logger import logger
 
@@ -35,6 +36,7 @@ app.include_router(products_router)
 app.include_router(el_router)
 app.include_router(orders_router)
 app.include_router(redis_router)
+app.include_router(store_router)
 
 @app.middleware('http')
 async def check_time(request: Request, call_next):

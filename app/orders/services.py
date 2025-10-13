@@ -6,9 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
 from app.orders.models import Order
+from app.orders.schema import OrderPickUpDetailSchema
 from app.products.dao import ProductDao
 from app.logger import logger, create_msg_db_error
+from app.stores.dao import StoreQuantityInfoDao
+from app.tasks.tasks_rbmq import send_courier_notification
 from app.users.models import User
+from app.config import settings
 
 class BasketService:
     def __init__(self, session: AsyncSession):
@@ -108,10 +112,9 @@ class OrderPickUpService:
         self.order_pickup_details_dao = OrderPickUpDetailsDao(session)
         self.purchase_dao = PurchaseDao(session)
         self.session: AsyncSession = session
-        
-        
-    async def create_order_pickup(self, user_id: int, order_details: dict):
-        """Создание заказа с самовывозом"""
+        self.stores_quantity_info_dao = StoreQuantityInfoDao(session)
+          
+    async def create_order_pickup(self, user_id: int, order_details: OrderPickUpDetailSchema):
         try:
             # Получаем product_id, которые лежат в корзине пользователя
             basket_of_user: list = await self.basket_dao.basket_of_user(user_id) 
@@ -119,6 +122,14 @@ class OrderPickUpService:
                 logger.warning('Empty basket for pickup order', extra={'user_id': user_id})
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Пустая корзина')
             
+            # Проверка есть ли все нужные товары в выбранном магазине 
+            product_with_quantity = await self.basket_dao.product_with_quantity(user_id)
+            missing_products = await self.stores_quantity_info_dao.get_missing_products(product_with_quantity, order_details['store_id'])
+            if missing_products:
+                raise HTTPException(
+                    409,
+                    detail=f'Невозможно оформить заказ. В магазине не хватает товаров: {' '.join(map(str, missing_products))}'
+                    )
             # возможно стоит объединить в один запрос
             price: int = await self.basket_dao.price_of_basket(user_id)
             order_details['user_id'] = user_id
@@ -141,12 +152,19 @@ class OrderPickUpService:
             
             # Переносим все данные о покупке
             await self.purchase_dao.add_products_of_order(basket_of_user=basket_of_user, order_id=order_id)
+            
+            # Убираем наличие продуктов в магазине
+            await self.stores_quantity_info_dao.reduction_in_quantity(product_with_quantity, order_details['store_id'])
+            #################################
+            # Сервис, который проводит оплату
+            #################################
             await self.basket_dao.delete_basket_of_user(user_id)
 
             await self.session.commit()
             logger.info('Pickup order created', extra={'user_id': user_id, 'order_id': order_id, 'price': price, 'products_count': len(basket_of_user)})
             return order_id
         except HTTPException:
+            await self.session.rollback()
             raise
         except Exception:
             logger.error('Failed to create pickup order', extra={'user_id': user_id}, exc_info=True)
@@ -192,6 +210,19 @@ class OrderDeliveryService:
             
             # Переносим все данные о покупке
             await self.purchase_dao.add_products_of_order(basket_of_user=basket_of_user, order_id=order_id)
+            
+            #################################
+            # Сервис, который проводит оплату
+            #################################
+            # Отправка письма на курьерскую службу
+            
+            products_with_quantity = await self.basket_dao.basket_of_user_with_quantity(user_id)
+            
+            product_ids = [product_id for product_id, quantity in products_with_quantity]
+            quantity = [quantity for product_id, quantity in products_with_quantity]
+            logger.debug(msg='Sending emails', extra={'product_ids': product_ids, 'quantity': quantity})
+            send_courier_notification.delay(settings.COURIER_EMAIL, order_id, product_ids, quantity, order_details['address'])
+            
             await self.basket_dao.delete_basket_of_user(user_id)
 
             await self.session.commit()

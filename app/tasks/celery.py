@@ -1,10 +1,7 @@
-import asyncio
 from celery import Celery
 from app.config import settings
 from celery.schedules import crontab
 import os
-from celery import Celery
-from app.config import settings
 from celery.schedules import crontab
 
 # Директория на уровень выше app
@@ -20,6 +17,7 @@ app: Celery = Celery('tasks', broker=f'redis://{settings.REDIS_HOST}:{settings.R
 
 app.conf.timezone = 'Europe/Moscow'
 app.conf.enable_utc = True  
+
 
 app.conf.beat_schedule = {
     'update_avg_reviews': {

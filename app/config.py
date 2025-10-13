@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: int
     
+    RABBITMQ_USER: str
+    RABBITMQ_PASS: str
+    
+    RABBITMQ_HOST: str
+    RABBITMQ_PORT: int
+    
+    RBMQ_QUEUE_SEND_MAIL_ORDER_FORMATION: str
+
     VER_CODE_EXP_SEC: int
     
     MAX_TRIES_EMAIL_CODE: int
@@ -44,6 +52,8 @@ class Settings(BaseSettings):
     JWT_ACCESS_COOKIE_NAME: str
     JWT_REFRESH_COOKIE_NAME: str
     JWT_VERIFY_REGISTRATION_COOKIE_NAME: str
+    
+    COURIER_EMAIL: str
     
     model_config = ConfigDict(env_file='.env')
         

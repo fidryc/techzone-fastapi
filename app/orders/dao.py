@@ -77,6 +77,29 @@ class BasketDao(BaseDao):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to get basket"
             )
+            
+    async def basket_of_user_with_quantity(self, user_id: int) -> list[tuple[int, int]]:
+        """Получение корзины пользователя формата товар - количество"""
+        query = text("""
+                    SELECT product_id, COUNT(product_id)
+                    FROM baskets
+                    WHERE user_id = :user_id
+                    GROUP BY product_id
+                    """)
+        params = {
+            'user_id': user_id
+        }
+        try:
+            result = (await self.session.execute(query, params)).fetchall()
+            logger.debug('Basket contents with quantity retrieved', extra={'user_id': user_id, 'items_count': len(result)})
+            return result
+        except SQLAlchemyError as e:
+            msg = create_msg_db_error('Cannot get basket_of_user')
+            logger.error(msg, extra={'user_id': user_id}, exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to get basket with quantity"
+            ) from e
     
     async def delete_basket_of_user(self, user_id) -> list[int]:
         """Удаление корзины пользователя"""
@@ -101,6 +124,28 @@ class BasketDao(BaseDao):
                 detail="Failed to delete basket"
             )
 
+    async def product_with_quantity(self, user_id) -> list[(int, int)]:
+        """Возващает product_id с его количеством в корзине"""
+        query = text("""
+                     SELECT product_id, COUNT(product_id) as quantity
+                     FROM baskets
+                     WHERE user_id = :user_id
+                     GROUP BY product_id
+                     """)
+        params = {
+            'user_id': user_id
+        }
+        try:
+            result = (await self.session.execute(query, params)).fetchall()
+            logger.debug('Get product_id with quantity', extra={'user_id': user_id, 'items_count': len(result)})
+            return result
+        except SQLAlchemyError as e:
+            msg = create_msg_db_error('Cannot get quantity of products from basket')
+            logger.error(msg, extra={'user_id': user_id}, exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to get quantity of products from basket"
+            )
 
 class OrderDao(BaseDao):
     model = Order
