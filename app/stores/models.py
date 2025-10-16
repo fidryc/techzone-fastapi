@@ -9,7 +9,6 @@ class Store(Base):
     title: Mapped[str] = mapped_column(String(56), nullable=False)
     opening_hours: Mapped[str] = mapped_column(String(128), nullable=False)
 
-
 class StoreQuantityInfo(Base):
     __tablename__ = 'stores_quantity_info'
 

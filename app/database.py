@@ -41,8 +41,14 @@ class Base(DeclarativeBase):
     def __repr__(self):
         return self.__tablename__
     
+    def _find(self):
+        for key in self.__dict__:
+            if key.endswith('id'):
+                return key
+            
     def __str__(self):
-        return self.__tablename__
+        id_key = self._find()
+        return f'{self.__class__.__name__} {self.__dict__[id_key]}'
     
     def __format__(self, format_spec: str) -> str:
         return format(self.__tablename__, format_spec)

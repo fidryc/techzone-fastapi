@@ -112,7 +112,7 @@ class UserService:
             await self.session.rollback()
             raise HTTPException(status_code=500, detail='Ошибка при удалении пользователя')
 
-    async def get_user_from_token(self, request: Request, response: Response):
+    async def get_user_from_token(self, request: Request, response: Response) -> UserSchema:
         """
         Получение user из токена
         
@@ -193,6 +193,14 @@ class UserService:
         except Exception as e:
             logger.warning('Failed logout', exc_info=True)
             raise HTTPException(status_code=500, detail='Ошибка при выходе с аккаунт') from e
+        
+    async def check_admin(self, request: Request, response: Response):
+        user = await self.get_user_from_token(request, response)
+        if user.role != 'admin':
+            logger.info('User try enter to admin panel')
+            raise HTTPException(403, 'Нет прав')
+        
+        
 
 class NotificationService(ABC):
     """Абстрактный класс для сервиса отправки уведомлений"""
@@ -206,6 +214,7 @@ class NotificationService(ABC):
         """Получение индентификатора пользователя"""
         pass
     
+
     
 class NotificationEmailService(NotificationService):
     

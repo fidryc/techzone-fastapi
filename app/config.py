@@ -55,6 +55,8 @@ class Settings(BaseSettings):
     
     COURIER_EMAIL: str
     
+    ADMIN_URL_STARTSWITH: str
+    
     model_config = ConfigDict(env_file='.env')
         
     _private_secret_key_cache: str | None = None

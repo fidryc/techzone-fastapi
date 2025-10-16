@@ -55,7 +55,6 @@ class Product(Base):
         Index('idx_specification_gin', 'specification', postgresql_using='gin'),
     )
 
-
 class Review(Base):
     __tablename__ = 'reviews'
 

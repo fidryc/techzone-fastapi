@@ -1,6 +1,9 @@
 from contextlib import asynccontextmanager
 from redis.asyncio import Redis
 from fastapi import FastAPI, Request
+from sqladmin import Admin
+from app.admin.middleware import check_admin
+from app.middleware import check_time
 from app.users.router import router as users_router
 from app.redis.client import redis_client
 from app.products.router import router as products_router
@@ -15,6 +18,10 @@ from app.redis.router import router as redis_router
 from app.stores.router import router as store_router
 from datetime import datetime, timezone
 from app.logger import logger
+from app.database import engine
+from app.admin.utils import get_admin_views
+from app.admin.middleware import check_admin
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -38,11 +45,10 @@ app.include_router(orders_router)
 app.include_router(redis_router)
 app.include_router(store_router)
 
-@app.middleware('http')
-async def check_time(request: Request, call_next):
-    start_time = datetime.now(timezone.utc)
-    response = await call_next(request)
-    logger.debug('Request execution time', extra={'total_seconds': (datetime.now(timezone.utc) - start_time).total_seconds()})
-    return response
+admin = Admin(app, engine)
+views = get_admin_views()
+for view in views:
+    admin.add_view(view)
 
-    
+app.middleware('http')(check_time)
+app.middleware('http')(check_admin)

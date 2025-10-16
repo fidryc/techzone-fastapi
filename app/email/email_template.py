@@ -33,6 +33,7 @@ def new_product_email(email_to, title, price):
 
 def courier_notification_msg(email_to: str, order_id: int, product_ids: list[int], quantity: list[int], address: str):
     email_message = EmailMessage()
+    1 / 0
     email_message['subject'] = 'Доставка заказа'
     email_message['From'] = settings.SMTP_USER
     email_message['To'] = email_to

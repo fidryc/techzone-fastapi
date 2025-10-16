@@ -1,6 +1,7 @@
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Enum, String, ForeignKey
+from sqlalchemy.orm import relationship
 
 
 class User(Base):
@@ -22,8 +23,10 @@ class User(Base):
         default='user',
         nullable=False
     )
-
-
+    
+    relationship_orders = relationship('Order', back_populates='relationship_user')
+    
+    
 class RefreshTokenBL(Base):
     __tablename__ = 'refresh_token_bl'
 

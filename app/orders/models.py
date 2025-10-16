@@ -2,6 +2,7 @@ from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, ForeignKey, Numeric, Enum
 from datetime import datetime, timezone
+from sqlalchemy.orm import relationship
 
 class OrderType(Base):
     __tablename__ = 'order_types'
@@ -26,6 +27,8 @@ class Order(Base):
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=True
     )
+    
+    relationship_user = relationship('User', back_populates='relationship_orders')
 
 
 class OrderPickUpDetail(Base):
