@@ -80,7 +80,7 @@ class BaseUserRegisterSchema(BaseModel):
         if len(password) >= 8 and cls.check_digits(password, 3):
             return password
         raise ValueError('Неверный пароль')
-
+    
 
 class UserRegisterEmailSchema(BaseUserRegisterSchema):
     email: str
@@ -100,6 +100,11 @@ class UserRegisterEmailSchema(BaseUserRegisterSchema):
             raise ValueError('Нельзя передавать number при регистрации по email')
         return None
     
+    @model_validator(mode='after')
+    def validate_fields(self):
+        if self.password == self.email.split('@')[0]:
+            raise ValueError('Пароль должен быть отличен от email')
+        return self
     
     
 class UserRegisterNumberSchema(BaseUserRegisterSchema):

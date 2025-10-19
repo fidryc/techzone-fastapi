@@ -106,6 +106,7 @@ class UserService:
             await self.session.commit()
             logger.info('User successfully deleted', extra={'user_id': user.user_id})
         except HTTPException:
+            await self.session.rollback()
             raise
         except Exception:
             logger.error('Failed to delete user', extra={'user_id': user.user_id}, exc_info=True)

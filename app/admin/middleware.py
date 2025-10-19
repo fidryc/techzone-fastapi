@@ -12,7 +12,6 @@ async def check_admin(request: Request, call_next):
     response = await call_next(request)
     
     if not request.url.path.startswith("/admin"):
-        print(request.url.path)
         return response
     else:
         async with session_maker() as session:
@@ -26,10 +25,8 @@ async def check_admin(request: Request, call_next):
             user_service = UserService(user_dao, order_dao, refresh_token_bl_service, redis_service, session)
             try:
                 await user_service.check_admin(request, response)
-                print('AAAAAAAAAAAAAAAAAAAAAAAa')
                 return response
             except HTTPException:
-                print('BBBBBBBBBBBBBBBBBBBBBBBB')
                 return JSONResponse(
                 status_code=403,
                 content={"detail": "У вас нет прав для входа в админ-панель"}

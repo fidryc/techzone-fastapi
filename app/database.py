@@ -43,12 +43,17 @@ class Base(DeclarativeBase):
     
     def _find(self):
         for key in self.__dict__:
-            if key.endswith('id'):
+            if key.endswith('id') and key.startswith(self.__class__.__name__.lower()):
                 return key
+        else:
+            return ''
             
     def __str__(self):
         id_key = self._find()
-        return f'{self.__class__.__name__} {self.__dict__[id_key]}'
+        if id_key:
+            return f'{self.__class__.__name__} {getattr(self, id_key)}'
+        else:
+            return '{self.__class__.__name__}'
     
     def __format__(self, format_spec: str) -> str:
         return format(self.__tablename__, format_spec)

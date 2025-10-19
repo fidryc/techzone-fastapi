@@ -25,6 +25,7 @@ class User(Base):
     )
     
     relationship_orders = relationship('Order', back_populates='relationship_user')
+    relationship_store = relationship('Store', back_populates='relationship_user')
     
     
 class RefreshTokenBL(Base):
