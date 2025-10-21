@@ -10,8 +10,6 @@ venv/
 .env/
 .env.local
 
-# Alembic migrations (временно, если пересоздаёшь)
-app/migrations/versions/*
 
 # Tests, docs, temp
 tests/

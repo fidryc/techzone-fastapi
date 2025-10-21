@@ -42,13 +42,13 @@ async def add_document(index_name:str, document: dict, el_cl: AsyncElasticsearch
    
 @router.post('/create_index_products')
 async def create_index_products(el_cl: AsyncElasticsearch=Depends(get_elasticsearch_cl)):
-    el_dao = Elasticsearch(el_cl)
+    el_dao = ElasticsearchDao(el_cl)
     el_service = ElasticsearchService(el_dao)
     await el_service.create_index_products()
     
 @router.post('/add_all_products')
 async def add_all_products(el_cl: AsyncElasticsearch=Depends(get_elasticsearch_cl), session=Depends(get_session)):
-    el_dao = Elasticsearch(el_cl)
+    el_dao = ElasticsearchDao(el_cl)
     el_service = ElasticsearchService(el_dao)
     await el_service.add_all_products(session)
     

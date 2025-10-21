@@ -19,7 +19,7 @@ class UserSchema(BaseModel):
 class UserValidateUtils:
     
     @classmethod
-    def validate_email(email):
+    def validate_email(cls, email: str):
         if not fullmatch(r'[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z0-9]+', email):
             raise ValueError('Введенный email неверный')
         return email
@@ -90,12 +90,12 @@ class UserRegisterEmailSchema(BaseUserRegisterSchema):
     @field_validator('email')
     @classmethod
     def validate_email(cls, email):
-        UserValidateUtils.validate_email(email)
+        return UserValidateUtils.validate_email(email)
     
     
     @field_validator('number')
     @classmethod
-    def validate_email(cls, number):
+    def validate_number(cls, number):
         if number:
             raise ValueError('Нельзя передавать number при регистрации по email')
         return None
