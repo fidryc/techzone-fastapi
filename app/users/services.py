@@ -283,7 +283,7 @@ class RegisterService:
         self.redis_service = redis_service
         self.session = session
     
-    def _get_data_for_registration(self, user) -> UserAuthRedisSchema:
+    def _get_data_for_registration(self, user, code: int) -> UserAuthRedisSchema:
         """
         Получение данных для redis для дальнейшей регистрации.
         
@@ -291,7 +291,6 @@ class RegisterService:
         Включает в себя данные пользователя, код, попытку регистрации
         """
         try:
-            code = random_code()
             data = prepare_user_for_auth(user, code)
             logger.debug('Registration data prepared', extra={'has_code': bool(code)})
             return data
@@ -312,12 +311,13 @@ class RegisterService:
             await self.redis_service.processing_limit_ip(request.client.host)
             await self.user_dao.check_user(user.email, user.number)
             
-            data = self._get_data_for_registration(user)
+            code = random_code()
+            data = self._get_data_for_registration(user, code)
             user_identifier = notification_service.get_user_identifier()
             
             await self.redis_service.set_user_auth_data(user_identifier, data)
             set_verify_register_token(response, user_identifier)
-            notification_service.send_verification_code(code=data['code'])
+            notification_service.send_verification_code(code)
             # await notification_service.send_verification_code(data['code'])
             
             logger.info('Registration initiated', extra={'user_identifier': user_identifier, 'ip': request.client.host})
@@ -354,13 +354,10 @@ class RegisterService:
             if not self.redis_service.is_correct_attempt(data['attempt']):
                 logger.warning('Registration attempts exceeded', extra={'verify_key': verify_register_key, 'attempts': data['attempt']})
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Попробуйте зарегистрироваться снова')
-            
             try:
-                verify_code(code_from_user, data["code"])
+                verify_code(str(code_from_user), data['code'])
             except ValueError:
                 logger.warning('Invalid verification code provided', extra={'verify_key': verify_register_key})
-                # Увеличить счетчик попыток в Redis
-                await self.redis_service.increment_attempt(key)
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='Передан неверный код')
             
             await self.user_dao.add(**data["user"])

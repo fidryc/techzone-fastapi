@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: Literal['INFO', 'DEBUG', 'WARNING', 'ERROR']
 
     DB_HOST: str
+    DB_HOST_PROD: str
     DB_PORT: int
     DB_NAME: str
     DB_USER: str
@@ -28,6 +29,7 @@ class Settings(BaseSettings):
     SMTP_PASS: str
     
     REDIS_HOST: str
+    REDIS_HOST_PROD: str
     REDIS_PORT: int
     
     RABBITMQ_USER: str
@@ -43,6 +45,7 @@ class Settings(BaseSettings):
     MAX_TRIES_EMAIL_CODE: int
     
     ELASTIC_HOST: str
+    ELASTIC_HOST_PROD: str
     ELASTIC_PORT: int
     
     INDEX_PRODUCTS: str

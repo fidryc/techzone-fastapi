@@ -1,11 +1,9 @@
 from contextlib import asynccontextmanager
-from redis.asyncio import Redis
-from fastapi import FastAPI, Request
 from sqladmin import Admin
 from app.admin.middleware import check_admin
 from app.middleware import check_time
 from app.users.router import router as users_router
-from app.redis.client import redis_client
+from app.redis.client import REDIS_URL, redis_client
 from app.products.router import router as products_router
 from elasticsearch import AsyncElasticsearch, Elasticsearch
 from app.config import settings
@@ -16,19 +14,20 @@ from fastapi_cache.backends.redis import RedisBackend
 from app.orders.router import router as orders_router
 from app.redis.router import router as redis_router
 from app.stores.router import router as store_router
-from datetime import datetime, timezone
 from app.logger import logger
 from app.database import engine
 from app.admin.utils import get_admin_views
 from app.admin.middleware import check_admin
+from app.elasticsearch.config import ELASTICSEARCH_URL
+from fastapi import FastAPI
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.debug('App start')
-    app.state.el_cl = AsyncElasticsearch(hosts=f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}")
-    app.state.el_cl_sync = Elasticsearch(hosts=f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}")
-    redis = aioredis.from_url(f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}')
+    app.state.el_cl = AsyncElasticsearch(hosts=ELASTICSEARCH_URL)
+    app.state.el_cl_sync = Elasticsearch(hosts=ELASTICSEARCH_URL)
+    redis = aioredis.from_url(REDIS_URL)
     app.state.redis_client = redis
     FastAPICache.init(RedisBackend(redis), prefix='fastapi-cache')
     yield

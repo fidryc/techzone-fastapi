@@ -7,9 +7,15 @@ from sqlalchemy import create_engine
 from app.config import settings
 from app.logger import logger
 
-DATABASE_URL = f'postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}'
-DATABASE_URL_SYNC = f'postgresql://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}'
 
+if settings.MODE == 'DEV':
+    DATABASE_URL = f'postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}'
+    DATABASE_URL_SYNC = f'postgresql://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}'
+elif settings.MODE == 'PROD':
+    DATABASE_URL = f'postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST_PROD}:{settings.DB_PORT}/{settings.DB_NAME}'
+    DATABASE_URL_SYNC = f'postgresql://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST_PROD}:{settings.DB_PORT}/{settings.DB_NAME}'
+    
+    
 engine = create_async_engine(DATABASE_URL)
 engine_sync = create_engine(DATABASE_URL_SYNC)
 

@@ -31,12 +31,11 @@ def random_code() -> int:
     return randint(100000, 999999)
 
 
-def verify_code(user_code: str, correct_code: int) -> bool:
+def verify_code(user_code: str, correct_code_hashed: str) -> bool:
     """Проверяет совпадение кодов"""
-    try:
-        return int(user_code) == correct_code
-    except ValueError:
-        return False
+    if not check_pwd(user_code, correct_code_hashed):
+        raise ValueError
+    
     
 def logout_user(response: Response):
     """Удаляет из cookie все токены для аутенфикации пользователя"""
@@ -54,7 +53,7 @@ def prepare_user_for_auth(user: UserRegisterEmailSchema | UserRegisterNumberSche
             'number': user.number}
     data = {
         'user': user_dict,
-        'code': code,
+        'code': get_hash(str(code)),
         'attempt': 0
     }
     return data

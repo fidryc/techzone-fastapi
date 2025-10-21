@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends
 from elasticsearch import AsyncElasticsearch, Elasticsearch
 
 from app.database import get_session
+from app.elasticsearch.config import ELASTICSEARCH_URL
+from app.elasticsearch.elasticsearch_dao import ElasticsearchDao
 from app.products.dao import ProductDao
 from app.products.schema import ProductReturnSchema, ProductSchema
 
@@ -24,13 +26,15 @@ def get_elasticsearch_cl_sync(request: Request):
 
 @router.post('/delete_index')
 async def create_index(index_name:str, el_cl: AsyncElasticsearch=Depends(get_elasticsearch_cl)):
-    el_service = ElasticsearchService(el_cl)
+    el_dao = ElasticsearchDao(el_cl)
+    el_service = ElasticsearchService(el_dao)
     await el_service.el_dao.delete_index(index_name)
 
 @router.post('/create_index')
 async def create_index(index_name:str, body: dict, el_cl: AsyncElasticsearch=Depends(get_elasticsearch_cl)):
-    el_service = ElasticsearchService(el_cl)
-    await el_service.el_dao.create_index_with_body(index=index_name, body=body)
+    el_dao = ElasticsearchDao(el_cl)
+    el_service = ElasticsearchService(el_dao)
+    await el_service.el_dao.create_index_with_body(index_name=index_name, body=body)
 
 @router.post('/add_document')
 async def add_document(index_name:str, document: dict, el_cl: AsyncElasticsearch=Depends(get_elasticsearch_cl)):
@@ -38,17 +42,20 @@ async def add_document(index_name:str, document: dict, el_cl: AsyncElasticsearch
    
 @router.post('/create_index_products')
 async def create_index_products(el_cl: AsyncElasticsearch=Depends(get_elasticsearch_cl)):
-    el_service = ElasticsearchService(el_cl)
+    el_dao = Elasticsearch(el_cl)
+    el_service = ElasticsearchService(el_dao)
     await el_service.create_index_products()
     
 @router.post('/add_all_products')
 async def add_all_products(el_cl: AsyncElasticsearch=Depends(get_elasticsearch_cl), session=Depends(get_session)):
-    el_service = ElasticsearchService(el_cl)
+    el_dao = Elasticsearch(el_cl)
+    el_service = ElasticsearchService(el_dao)
     await el_service.add_all_products(session)
     
 @router.post('/add_all_products_sync')
 def add_all_products():
-    with Elasticsearch(hosts=f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}") as el_cl:
-        el_service = ElasticsearchSyncService(el_cl)
+    el_dao = Elasticsearch(el_cl)
+    with Elasticsearch(hosts=ELASTICSEARCH_URL) as el_cl:
+        el_service = ElasticsearchSyncService(el_dao)
         with session_maker_sync() as session:
             el_service.add_all_products(session=session)

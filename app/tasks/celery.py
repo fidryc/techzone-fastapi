@@ -3,6 +3,7 @@ from app.config import settings
 from celery.schedules import crontab
 import os
 from celery.schedules import crontab
+from app.redis.client import REDIS_URL
 
 # Директория на уровень выше app
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -13,7 +14,7 @@ BEAT_SCHEDULE_FILE = os.path.join(ROOT_DIR, 'celerybeat-schedule')
 #     os.remove(BEAT_SCHEDULE_FILE)
 #     print(f"Deleted old beat schedule file: {BEAT_SCHEDULE_FILE}")
 
-app: Celery = Celery('tasks', broker=f'redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}')
+app: Celery = Celery('tasks', broker=REDIS_URL)
 
 app.conf.timezone = 'Europe/Moscow'
 app.conf.enable_utc = True  
