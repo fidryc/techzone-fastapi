@@ -15,11 +15,12 @@ from app.orders.router import router as orders_router
 from app.redis.router import router as redis_router
 from app.stores.router import router as store_router
 from app.logger import logger
-from app.database import engine
+from app.database import SessionDep, engine
 from app.admin.utils import get_admin_views
 from app.admin.middleware import check_admin
 from app.elasticsearch.config import ELASTICSEARCH_URL
 from fastapi import FastAPI
+from sqlalchemy import text
 
 
 @asynccontextmanager
@@ -27,7 +28,7 @@ async def lifespan(app: FastAPI):
     logger.debug('App start')
     app.state.el_cl = AsyncElasticsearch(hosts=ELASTICSEARCH_URL)
     app.state.el_cl_sync = Elasticsearch(hosts=ELASTICSEARCH_URL)
-    redis = aioredis.from_url(REDIS_URL)
+    redis = aioredis.from_url(settings.REDIS_URL)
     app.state.redis_client = redis
     FastAPICache.init(RedisBackend(redis), prefix='fastapi-cache')
     yield

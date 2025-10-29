@@ -4,9 +4,7 @@ from fastapi import APIRouter, Depends, Request, Response
 from app.database import SessionDep, get_session
 from app.orders.schema import OrderDeliveryDetailSchema, OrderPickUpDetailSchema, OrderSchema
 from app.orders.services import BasketService, OrderDeliveryService, OrderPickUpService, OrderService
-from app.products.services import ProductService
 from app.users.depends import CurrentUserDep
-from app.users.services import UserService
 from fastapi_cache.decorator import cache
 
 router = APIRouter(
@@ -28,6 +26,7 @@ async def add_to_basket(user: CurrentUserDep, session: SessionDep, product_id: i
     Returns:
         200: Товар успешно добавлен в корзину
     """
+    
     basket_service = BasketService(session)
     return await basket_service.add_to_basket(product_id, user.user_id)
 
@@ -45,6 +44,7 @@ async def create_order_pickup(user: CurrentUserDep, session: SessionDep, order_d
     Returns:
         200: Заказ с самовывозом успешно создан
     """
+    
     order_service = OrderPickUpService(session)
     return await order_service.create_order_pickup(user.user_id, order_details.model_dump())
 
@@ -67,7 +67,6 @@ async def create_order_delivery(user: CurrentUserDep, session: SessionDep, order
 
 
 @router.get('/get_orders', summary='Получение списка заказов')
-@cache(expire=120)
 async def get_orders(user: CurrentUserDep, session: SessionDep) -> list[OrderSchema]:
     """
     Получение списка заказов пользователя

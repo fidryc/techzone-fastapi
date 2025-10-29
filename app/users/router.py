@@ -7,7 +7,8 @@ from app.users.depends import CurrentUserDep, RegisterServiceDep, UserDaoDep, Us
 from app.users.schema import UserAuthEmailSchema, UserAuthNumberSchema, UserRegisterEmailSchema, UserRegisterNumberSchema, UserSchema
 from app.users.services import NotificationServiceFactory, RegisterService, UserService
 from fastapi import Depends, Response, Request
-from app.database import SessionDep, get_session
+from app.database import SessionDep
+from app.config import settings
 
 router = APIRouter(
     prefix='/users',
@@ -140,7 +141,7 @@ async def login_with_number(response: Response, user: UserAuthNumberSchema, user
     path='/logout',
     summary='Выход с аккаунта'
     )
-async def login(response: Response, user_service: UserServiceDep):
+async def logout(response: Response, user_service: UserServiceDep):
     """
     Выход из аккаунта
     
@@ -173,7 +174,7 @@ async def delete_user(response: Response, user: CurrentUserDep, user_service: Us
     await user_service.delete_user(user, response)
 
 
-@router.post(path='/test/',
+@router.get(path='/test/',
              summary='Проверка правильности получения пользователя')
 async def test(user: CurrentUserDep):
     """

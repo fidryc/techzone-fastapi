@@ -1,0 +1,99 @@
+services:
+  app:
+    build:  .
+    image: techzone
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - techzone-network
+    depends_on:
+      - db
+      - redis
+      - elasticsearch
+    env_file:
+      - .env
+  celery:
+    build:  .
+    image: techzone-celery
+    networks:
+      - techzone-network
+    env_file:
+      - .env
+    command: celery -A app.tasks.tasks worker --pool=solo --loglevel=INFO
+    depends_on:
+      - redis
+      - elasticsearch
+  celery-rabbitmq:
+    build:  .
+    image: techzone-celery-rabbitmq
+    networks:
+      - techzone-network
+    env_file:
+      - .env
+    command: celery -A app.tasks.tasks_rbmq worker --pool=solo --loglevel=INFO
+    depends_on:
+      - rabbitmq
+      
+  celery_beat:
+    build:  .
+    image: techzone-celery-beat
+    networks:
+      - techzone-network
+    env_file:
+      - .env
+    command: celery -A app.tasks.tasks beat --loglevel=INFO
+    depends_on:
+      - redis
+      - elasticsearch
+
+  db:
+    image: postgres:latest
+    volumes:
+      - "postgres-volume:/var/lib/postgresql/data"
+    environment:
+      - POSTGRES_DB=${DB_NAME} # ${} - из .env
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+    networks:
+      - techzone-network
+  redis:
+    image: redis:latest
+    container_name: redis-container
+    networks:
+      - techzone-network
+  elasticsearch:
+    image: elasticsearch:9.1.5
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    networks:
+      - techzone-network
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+  rabbitmq:
+      image: rabbitmq:3-management-alpine
+      hostname: rabbitmq
+      container_name: rabbitmq
+      ports:
+        - "5672:5672"
+        - "15672:15672"
+      environment:
+        - RABBITMQ_DEFAULT_USER=guest
+        - RABBITMQ_DEFAULT_PASS=guest
+      volumes:
+        - rabbitmq-data:/var/lib/rabbitmq
+      networks:
+      - techzone-network
+
+networks:
+  techzone-network:
+    driver: bridge
+
+volumes:
+  postgres-volume:
+  es_data:
+  celery_data:
+  rabbitmq-data:
+  celery_beat_data:

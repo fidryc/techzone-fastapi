@@ -6,5 +6,3 @@ __pycache__/
 secrets.json
 *.$plane.drawio.bkp
 *.drawio
-docker-compose.yaml
-Dockerfile

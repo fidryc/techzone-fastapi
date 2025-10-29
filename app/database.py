@@ -8,16 +8,12 @@ from app.config import settings
 from app.logger import logger
 
 
-if settings.MODE == 'DEV':
-    DATABASE_URL = f'postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}'
-    DATABASE_URL_SYNC = f'postgresql://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}'
-elif settings.MODE == 'PROD':
-    DATABASE_URL = f'postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST_PROD}:{settings.DB_PORT}/{settings.DB_NAME}'
-    DATABASE_URL_SYNC = f'postgresql://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST_PROD}:{settings.DB_PORT}/{settings.DB_NAME}'
+DATABASE_URL = settings.DB_URL
+DATABASE_URL_SYNC = settings.DB_SYNC_URL
     
     
-engine = create_async_engine(DATABASE_URL)
-engine_sync = create_engine(DATABASE_URL_SYNC)
+engine = create_async_engine(DATABASE_URL, **settings.DB_PARAMS)
+engine_sync = create_engine(DATABASE_URL_SYNC, **settings.DB_PARAMS)
 
 session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 

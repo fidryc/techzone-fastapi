@@ -54,8 +54,7 @@ async def add_all_products(el_cl: AsyncElasticsearch=Depends(get_elasticsearch_c
     
 @router.post('/add_all_products_sync')
 def add_all_products():
-    el_dao = Elasticsearch(el_cl)
     with Elasticsearch(hosts=ELASTICSEARCH_URL) as el_cl:
-        el_service = ElasticsearchSyncService(el_dao)
+        el_service = ElasticsearchSyncService(el_cl)
         with session_maker_sync() as session:
             el_service.add_all_products(session=session)

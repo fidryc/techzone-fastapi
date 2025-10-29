@@ -111,3 +111,6 @@ class ElasticsearchSyncDao:
         except ElasticsearchWarning as e:
             logger.error('Failed to delete index (sync)', extra={'index': index_name}, exc_info=True)
             raise
+        
+    def index_exists(self, index):
+        return self.el_cl.indices.exists(index=index)

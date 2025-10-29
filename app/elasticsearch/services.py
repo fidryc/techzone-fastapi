@@ -193,7 +193,7 @@ class ElasticsearchSyncService:
             product_dao = ProductSyncDao(session)
             
             logger.debug('Checking if products index exists (sync)', extra={'index': settings.INDEX_PRODUCTS})
-            if self.el_dao.el_cl.indices.exists(index=settings.INDEX_PRODUCTS):
+            if self.el_dao.index_exists(index=settings.INDEX_PRODUCTS):
                 logger.info('Deleting existing products index (sync)', extra={'index': settings.INDEX_PRODUCTS})
                 self.el_dao.delete_index(settings.INDEX_PRODUCTS)
                 
@@ -235,3 +235,4 @@ class ElasticsearchSyncService:
         except Exception as e:
             logger.error('Failed to search products (sync)', extra={'query': query_text}, exc_info=True)
             raise
+        

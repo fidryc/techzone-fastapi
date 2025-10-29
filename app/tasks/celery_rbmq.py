@@ -3,12 +3,18 @@ from celery.exceptions import Reject
 from kombu import Queue, Exchange
 import logging
 from app.config import settings
-from app.email.email_template import courier_notification_msg
-from app.email.servises import send_email
 
+if settings.MODE == 'DEV':
+    RABBITMQ_URL = f'amqp://{settings.RABBITMQ_DEFAULT_USER}:{settings.RABBITMQ_DEFAULT_PASS}@{settings.RABBITMQ_HOST}:{settings.RABBITMQ_PORT}//'
+elif settings.MODE == 'PROD':
+    RABBITMQ_URL = f'amqp://{settings.RABBITMQ_DEFAULT_USER}:{settings.RABBITMQ_DEFAULT_PASS}@{settings.RABBITMQ_HOST_PROD}:{settings.RABBITMQ_PORT}//'
+elif settings.MODE == 'TEST':
+    RABBITMQ_URL = f'amqp://{settings.RABBITMQ_DEFAULT_USER}:{settings.RABBITMQ_DEFAULT_PASS}@{settings.RABBITMQ_HOST_PROD}:{settings.RABBITMQ_PORT}//'
+    
+    
 app_rbmq = Celery(
     'tasks_rbmq',
-    broker=f'amqp://{settings.RABBITMQ_USER}:{settings.RABBITMQ_PASS}@{settings.RABBITMQ_HOST}:{settings.RABBITMQ_PORT}//'
+    broker=RABBITMQ_URL
 )
 
 default_exchange = Exchange('order_formation_exchange', type='direct', durable=True)

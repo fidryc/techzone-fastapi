@@ -4,6 +4,7 @@ from sqlalchemy import String, ForeignKey, Numeric, Enum
 from datetime import datetime, timezone
 from sqlalchemy.orm import relationship
 
+
 class OrderType(Base):
     __tablename__ = 'order_types'
 
@@ -28,7 +29,7 @@ class Order(Base):
         nullable=True
     )
     
-    relationship_user = relationship('User', back_populates='relationship_orders')
+    # relationship_user = relationship('User', back_populates='relationship_orders')
 
 
 class OrderPickUpDetail(Base):
@@ -38,8 +39,8 @@ class OrderPickUpDetail(Base):
     store_id: Mapped[int] = mapped_column(ForeignKey('stores.store_id', ondelete='CASCADE'), index=True, nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete='CASCADE'), index=True, nullable=False)
 
-    relationship_store = relationship('Store')
-    relationship_user = relationship('User')
+    # relationship_store = relationship('Store')
+    # relationship_user = relationship('User')
 
 class OrderDeliveryDetail(Base):
     __tablename__ = 'order_delivery_details'
@@ -48,7 +49,7 @@ class OrderDeliveryDetail(Base):
     address: Mapped[str] = mapped_column(String(128), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete='CASCADE'), index=True, nullable=False)
 
-    relationship_user = relationship('User')
+    # relationship_user = relationship('User')
 
 class Purchase(Base):
     __tablename__ = 'purchases'
@@ -57,8 +58,8 @@ class Purchase(Base):
     order_id: Mapped[int] = mapped_column(ForeignKey('orders.order_id', ondelete='CASCADE'), index=True, nullable=False)
     product_id: Mapped[int] = mapped_column(ForeignKey('products.product_id', ondelete='RESTRICT'), index=True, nullable=False)
 
-    relationship_order = relationship('Order')
-    relationship_product = relationship('Product')
+    # relationship_order = relationship('Order')
+    # relationship_product = relationship('Product')
     
     
 class Basket(Base):
@@ -68,5 +69,5 @@ class Basket(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id', ondelete='CASCADE'), index=True, nullable=False)
     product_id: Mapped[int] = mapped_column(ForeignKey('products.product_id', ondelete='CASCADE'), nullable=False)
 
-    relationship_user = relationship('User')
-    relationship_product = relationship('Product')
+    # relationship_user = relationship('User')
+    # relationship_product = relationship('Product')

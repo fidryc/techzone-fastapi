@@ -1,3 +1,4 @@
+from app.users.models import User
 from datetime import datetime
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column
@@ -5,6 +6,7 @@ from sqlalchemy import String, ForeignKey, Float, Numeric, CheckConstraint, Inde
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
+    
 
 class Category(Base):
     __tablename__ = 'categories'
@@ -52,7 +54,7 @@ class Product(Base):
         nullable=True
     )
     
-    relationship_category = relationship('Category')
+    # relationship_category = relationship('Category', viewonly=True, lazy='joined')
 
     __table_args__ = (
         Index('idx_specification_gin', 'specification', postgresql_using='gin'),
@@ -81,8 +83,8 @@ class Review(Base):
     is_edited: Mapped[bool] = mapped_column(default=False, nullable=False)
     rating: Mapped[int | None] = mapped_column(nullable=True)
     
-    relationship_user = relationship('User')
-    relationship_product = relationship('Product')
+    # relationship_user = relationship('User', viewonly=True, lazy='joined')
+    # relationship_product = relationship('Product', viewonly=True, lazy='joined')
 
 
 class FavoriteProduct(Base):
@@ -100,8 +102,8 @@ class FavoriteProduct(Base):
         nullable=False
     )
 
-    relationship_user = relationship('User')
-    relationship_product = relationship('Product')
+    # relationship_user = relationship('User', viewonly=True, lazy='joined')
+    # relationship_product = relationship('Product', viewonly=True, lazy='joined')
     
     def __repr__(self):
         return f"<FavoriteProduct {self.user_id=} {self.product_id=}>"
@@ -118,4 +120,4 @@ class HistoryQueryUser(Base):
     )
     query_text: Mapped[str] = mapped_column(String(32), index=True, nullable=False)
     
-    relationship_user = relationship('User')
+    # relationship_user = relationship('User', viewonly=True, lazy='joined')
