@@ -1,5 +1,5 @@
 from typing import Literal
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter
 
 from app.database import SessionDep, get_session
 from app.orders.schema import (

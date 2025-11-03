@@ -5,7 +5,6 @@ from app.elasticsearch.services import ElasticsearchSyncService
 from app.products.services import ProductServiceSync
 from app.tasks.celery import app
 from app.database import session_maker_sync
-from app.config import settings
 from app.products.dao import ProductSyncDao, ReviewSyncDao
 from app.logger import logger
 

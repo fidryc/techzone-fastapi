@@ -14,7 +14,6 @@ from app.config import settings
 from app.database import engine, session_maker
 from app.tests.data_for_test.data_for_init_db import INSERT_TABLES
 from app.tests.utils import reset_sequences
-from fastapi.testclient import TestClient
 from httpx import AsyncClient, ASGITransport
 from app.main import app as fastapi_app
 from fastapi_cache.backends.redis import RedisBackend

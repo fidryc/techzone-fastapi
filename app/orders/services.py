@@ -188,14 +188,10 @@ class OrderPickUpService:
                 logger.warning(
                     "Empty basket for pickup order", extra={"user_id": user_id}
                 )
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Пустая корзина"
-                )
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Пустая корзина")
 
             # Проверка есть ли все нужные товары в выбранном магазине
-            products_with_quantity = await self.basket_dao.product_with_quantity(
-                user_id
-            )
+            products_with_quantity = await self.basket_dao.product_with_quantity(user_id)
             missing_products = await self.store_quantity_info_dao.get_missing_products(
                 products_with_quantity, order_details["store_id"]
             )
@@ -209,9 +205,7 @@ class OrderPickUpService:
             order_details["user_id"] = user_id
 
             # создаем запись в order_details и получаем id тк, в orders есть поле order_details_id
-            order_pickup_detail_id: int = (
-                await self.order_pickup_details_dao.add_and_return_id(**order_details)
-            )
+            order_pickup_detail_id: int = (await self.order_pickup_details_dao.add_and_return_id(**order_details))
 
             # Временный вариант, возможно стоит переписать на запрос, нельзя менять order_type_id в базе
             order = {
@@ -227,9 +221,7 @@ class OrderPickUpService:
             order_id = await self.order_dao.add_and_return_id(**order)
 
             # Переносим все данные о покупке
-            await self.purchase_dao.add_products_of_order(
-                basket_of_user=basket_of_user, order_id=order_id
-            )
+            await self.purchase_dao.add_products_of_order(basket_of_user=basket_of_user, order_id=order_id)
 
             # Убираем наличие продуктов в магазине
             await self.store_quantity_info_dao.reduction_in_quantity(
@@ -261,9 +253,7 @@ class OrderPickUpService:
                 exc_info=True,
             )
             await self.session.rollback()
-            raise HTTPException(
-                status_code=500, detail="Ошибка при создании заказа самовывоза"
-            )
+            raise HTTPException(status_code=500, detail="Ошибка при создании заказа самовывоза")
 
 
 class OrderDeliveryService:
@@ -280,21 +270,15 @@ class OrderDeliveryService:
             # Получаем product_id, которые лежат в корзине пользователя
             basket_of_user: list = await self.basket_dao.basket_of_user(user_id)
             if not basket_of_user:
-                logger.warning(
-                    "Empty basket for delivery order", extra={"user_id": user_id}
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Пустая корзина"
-                )
+                logger.warning("Empty basket for delivery order", extra={"user_id": user_id})
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Пустая корзина")
 
             # возможно стоит объединить в один запрос
             price: int = await self.basket_dao.price_of_basket(user_id)
             order_details["user_id"] = user_id
 
             # создаем запись в order_details и получаем id тк, в orders есть поле order_details_id
-            order_delivery_detail_id: int = (
-                await self.order_delivery_detail_dao.add_and_return_id(**order_details)
-            )
+            order_delivery_detail_id: int = (await self.order_delivery_detail_dao.add_and_return_id(**order_details))
 
             # Временный вариант, возможно стоит переписать на запрос, нельзя менять id в базе
             order = {
@@ -310,18 +294,14 @@ class OrderDeliveryService:
             order_id = await self.order_dao.add_and_return_id(**order)
 
             # Переносим все данные о покупке
-            await self.purchase_dao.add_products_of_order(
-                basket_of_user=basket_of_user, order_id=order_id
-            )
+            await self.purchase_dao.add_products_of_order(basket_of_user=basket_of_user, order_id=order_id)
 
             #################################
             # Сервис, который проводит оплату
             #################################
             # Отправка письма на курьерскую службу
 
-            products_with_quantity = await self.basket_dao.basket_of_user_with_quantity(
-                user_id
-            )
+            products_with_quantity = await self.basket_dao.basket_of_user_with_quantity(user_id)
 
             logger.debug(
                 msg="Sending emails",
@@ -349,13 +329,11 @@ class OrderDeliveryService:
             return order_id
         except HTTPException:
             raise
-        except Exception:
+        except Exception as e:
             logger.error(
                 "Failed to create delivery order",
                 extra={"user_id": user_id},
                 exc_info=True,
             )
             await self.session.rollback()
-            raise HTTPException(
-                status_code=500, detail="Ошибка при создании заказа с доставкой"
-            )
+            raise HTTPException(status_code=500, detail="Ошибка при создании заказа с доставкой") from e

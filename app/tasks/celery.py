@@ -2,7 +2,6 @@ from celery import Celery
 from app.config import settings
 from celery.schedules import crontab
 import os
-from celery.schedules import crontab
 
 
 # Директория на уровень выше app

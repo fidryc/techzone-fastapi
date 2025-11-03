@@ -1,7 +1,5 @@
 from celery import Celery
-from celery.exceptions import Reject
 from kombu import Queue, Exchange
-import logging
 from app.config import settings
 
 if settings.MODE == "DEV":

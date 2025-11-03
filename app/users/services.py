@@ -1,16 +1,10 @@
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta, timezone
-from json import dumps
-from typing import Union
+from datetime import timedelta
 
-from elastic_transport import HttpHeaders
-from fastapi import Depends, HTTPException, Request, Response, status
-from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.email.email_template import register_code
-from app.email.services import async_send_email
 from app.orders.dao import OrderDao
 from app.redis.services import RedisService
 from app.tasks.email_tasks import send_email_code
@@ -39,7 +33,7 @@ from app.users.utils import (
     random_code,
     verify_code,
 )
-from app.logger import logger, create_msg_db_error
+from app.logger import logger
 
 
 class RefreshTokenBLService:

@@ -2,8 +2,12 @@ from re import fullmatch
 from typing import TypedDict
 import random
 
-from pydantic import BaseModel, field_validator, model_validator, Field
-
+from pydantic import (
+    BaseModel,
+    field_validator,
+    model_validator,
+    Field
+)
 
 class UserSchema(BaseModel):
     user_id: int

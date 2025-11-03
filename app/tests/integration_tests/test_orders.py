@@ -1,8 +1,5 @@
-import json
 from httpx import AsyncClient
 import pytest
-from app.config import settings
-from app.tests.conftest import session
 
 
 @pytest.mark.parametrize(

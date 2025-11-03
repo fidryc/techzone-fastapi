@@ -17,7 +17,3 @@ async def redis_get_data(key):
 
     data = json.loads(redis_user_data)
     return data
-
-
-async def redis_delete(key):
-    redis_user_data = await redis_client.delete(key)

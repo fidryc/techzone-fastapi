@@ -5,12 +5,11 @@ from elasticsearch import AsyncElasticsearch, Elasticsearch
 from app.database import get_session
 from app.elasticsearch.config import ELASTICSEARCH_URL
 from app.elasticsearch.elasticsearch_dao import ElasticsearchDao
-from app.products.dao import ProductDao
-from app.products.schema import ProductReturnSchema, ProductSchema
 
 from app.elasticsearch.services import ElasticsearchService, ElasticsearchSyncService
-from app.config import settings
 from app.database import session_maker_sync
+
+
 router = APIRouter(
     prefix='/el',
     tags=['el']

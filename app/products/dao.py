@@ -433,7 +433,7 @@ class ProductDao(BaseDao):
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Непредвиденная ошибка при получении любимых продуктов",
-            )
+            ) from e
 
 
 # Синхронный вариант для celery
@@ -444,9 +444,11 @@ class ProductSyncDao(BaseSyncDao):
         """Обновление средних оценок товаров"""
         try:
             query = text(
-                """UPDATE products
-                         SET rating = :avg_review
-                         WHERE product_id = :product_id"""
+                """
+                UPDATE products
+                SET rating = :avg_review
+                WHERE product_id = :product_id
+                """
             )
             for product_id, avg_review in products_avg_reviews:
                 params = {

@@ -1,6 +1,5 @@
 import inspect
 from sqladmin import ModelView
-import test
 import app.admin_panel.views as admin_views
 
 def get_admin_views() -> list:
