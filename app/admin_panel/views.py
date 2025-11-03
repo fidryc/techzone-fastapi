@@ -1,6 +1,13 @@
 from sqladmin import Admin, ModelView
 from app.database import engine
-from app.orders.models import Order, OrderType, OrderPickUpDetail, OrderDeliveryDetail, Purchase, Basket
+from app.orders.models import (
+    Order,
+    OrderType,
+    OrderPickUpDetail,
+    OrderDeliveryDetail,
+    Purchase,
+    Basket
+)
 from app.users.models import RefreshTokenBL, User
 from app.stores.models import Store, StoreQuantityInfo
 from app.products.models import (

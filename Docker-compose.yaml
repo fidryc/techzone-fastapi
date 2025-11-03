@@ -87,8 +87,39 @@ services:
       networks:
       - techzone-network
 
+  prometheus:
+      image: prom/prometheus:latest
+      container_name: prometheus
+      volumes:
+        - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      ports:
+        - "9090:9090"
+      networks:
+        - monitoring
+        - techzone-network
+
+  grafana:
+      image: grafana/grafana:latest
+      container_name: grafana
+      ports:
+        - "3000:3000"
+      environment:
+        - GF_SECURITY_ADMIN_USER=admin
+        - GF_SECURITY_ADMIN_PASSWORD=admin
+      networks:
+        - monitoring
+        - techzone-network
+      volumes:
+        - ./datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+        - grafana_data:/var/lib/grafana
+      depends_on:
+        - prometheus
+    
+
 networks:
   techzone-network:
+    driver: bridge
+  monitoring:
     driver: bridge
 
 volumes:
@@ -97,3 +128,4 @@ volumes:
   celery_data:
   rabbitmq-data:
   celery_beat_data:
+  grafana_data:

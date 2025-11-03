@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from json import dumps
 
+
 class ProductSchema(BaseModel):
     title: str
     category_id: int
@@ -14,7 +15,7 @@ class ProductSchema(BaseModel):
     country_origin: str
     sale_percent: Optional[int] = None
     views: Optional[int] = None
-    
+
 
 class ProductResponseSchema(BaseModel):
     product_id: int
@@ -28,8 +29,8 @@ class ProductResponseSchema(BaseModel):
     country_origin: str
     sale_percent: Optional[int] = None
     views: Optional[int] = None
-    
-    
+
+
 class ProductReturnSchema(BaseModel):
     product_id: int
     title: str
@@ -42,7 +43,7 @@ class ProductReturnSchema(BaseModel):
     country_origin: str
     sale_percent: Optional[int] = None
     views: Optional[int] = None
-    
+
 
 class HistoryQueryUserSchema(BaseModel):
     history_text_user_id: int

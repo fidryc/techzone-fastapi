@@ -6,7 +6,6 @@ from app.orders.dao import OrderDao
 from app.redis.services import RedisService
 
 
-
 def get_redis_client(request: Request) -> Redis:
     return request.app.state.redis_client
 

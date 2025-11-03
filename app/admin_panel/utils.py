@@ -1,6 +1,7 @@
 import inspect
 from sqladmin import ModelView
-import app.admin.views as admin_views
+import test
+import app.admin_panel.views as admin_views
 
 def get_admin_views() -> list:
     classes = []
@@ -9,4 +10,8 @@ def get_admin_views() -> list:
             if inspect.isclass(obj) and obj is not ModelView and issubclass(obj, ModelView):
                 classes.append(obj)
     return classes
+
+class Test:
+    def __init__(self, test_data):
+        self.test_data = test_data
             

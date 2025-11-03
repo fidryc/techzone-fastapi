@@ -23,6 +23,7 @@ click-didyoumean==0.3.1
 click-plugins==1.1.1.2
 click-repl==0.3.0
 colorama==0.4.6
+coverage==7.11.0
 cryptography==45.0.5
 elastic-transport==9.1.0
 elasticsearch==9.1.0
@@ -33,7 +34,10 @@ frozenlist==1.7.0
 greenlet==3.2.3
 h11==0.16.0
 hiredis==3.2.1
+httpcore==1.0.9
+httpx==0.28.1
 idna==3.10
+iniconfig==2.3.0
 isort==6.0.1
 Jinja2==3.1.6
 kombu==5.5.4
@@ -45,6 +49,9 @@ packaging==25.0
 pathspec==0.12.1
 pendulum==3.1.0
 platformdirs==4.4.0
+pluggy==1.6.0
+prometheus-fastapi-instrumentator==7.1.0
+prometheus_client==0.23.1
 prompt_toolkit==3.0.51
 propcache==0.3.2
 psycopg2-binary==2.9.10
@@ -52,7 +59,11 @@ pycparser==2.22
 pydantic==2.11.7
 pydantic-settings==2.10.1
 pydantic_core==2.33.2
+Pygments==2.19.2
 PyJWT==2.10.1
+pytest==8.4.2
+pytest-asyncio==1.2.0
+pytest-cov==7.0.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
 python-json-logger==3.3.0

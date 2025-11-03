@@ -31,15 +31,14 @@ def new_product_email(email_to, title, price):
     )
     return email_message
 
-def courier_notification_msg(email_to: str, order_id: int, product_ids: list[int], quantity: list[int], address: str):
+def courier_notification_msg(email_to: str, order_id: int, products_with_quantity: list[tuple[int, int]], address: str):
     email_message = EmailMessage()
-    1 / 0
     email_message['subject'] = 'Доставка заказа'
     email_message['From'] = settings.SMTP_USER
     email_message['To'] = email_to
     s = f'<h1>Доставить заказ номер {order_id} по адресу {address}</h1>\n'
-    for i in range(len(product_ids)):
-        s += f'Товар с id {product_ids[i]} в количестве {quantity[i]}<br>'
+    for product_id, quantity in products_with_quantity:
+        s += f'Товар с id {product_id} в количестве {quantity}<br>'
         
     email_message.set_content(s, subtype='html')
     print(email_message)

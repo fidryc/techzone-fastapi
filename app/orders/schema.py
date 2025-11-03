@@ -1,13 +1,14 @@
 from datetime import datetime
 from pydantic import BaseModel
 
-    
+
 class OrderPickUpDetailSchema(BaseModel):
     store_id: int
-    
+
+
 class OrderDeliveryDetailSchema(BaseModel):
     address: str
-    
+
 
 class OrderSchema(BaseModel):
     order_id: int
@@ -19,7 +20,6 @@ class OrderSchema(BaseModel):
     price: float
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         orm_mode = True
-    

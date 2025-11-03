@@ -21,25 +21,25 @@ from fastapi_cache.backends.redis import RedisBackend
 from redis import asyncio as aioredis
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 async def prepare_db():
-    assert settings.MODE == 'TEST'
-    
+    assert settings.MODE == "TEST"
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
-    
+
     async with session_maker() as session:
         for table_name, insert_datas in INSERT_TABLES:
             table = Base.metadata.tables[table_name]
             query = insert(table).values(insert_datas)
             await session.execute(query)
         await session.commit()
-        
+
     async with engine.begin() as conn:
         await reset_sequences(conn)
-            
-        
+
+
 @pytest.fixture(scope="session")
 def event_loop():
     """Современный способ для session scope"""
@@ -49,59 +49,65 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 async def session():
     async with session_maker() as ses:
         yield ses
-        
-        
-@pytest.fixture(scope='function')
+
+
+@pytest.fixture(scope="function")
 async def ac():
     fastapi_app.state.el_cl = AsyncElasticsearch(hosts=ELASTICSEARCH_URL)
     fastapi_app.state.el_cl_sync = Elasticsearch(hosts=ELASTICSEARCH_URL)
     redis = aioredis.from_url(settings.REDIS_URL)
     fastapi_app.state.redis_client = redis
-    FastAPICache.init(RedisBackend(redis), prefix='fastapi-cache')
-    
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+
     transport = ASGITransport(app=fastapi_app)
-    async with AsyncClient(transport=transport, base_url='http://test') as app_client:
+    async with AsyncClient(transport=transport, base_url="http://test") as app_client:
         yield app_client
-        
+
     el_cl: AsyncElasticsearch = fastapi_app.state.el_cl
     await el_cl.close()
-        
-        
-@pytest.fixture(scope='function')
+
+
+@pytest.fixture(scope="function")
 async def authenticated_ac():
     fastapi_app.state.el_cl = AsyncElasticsearch(hosts=ELASTICSEARCH_URL)
     fastapi_app.state.el_cl_sync = Elasticsearch(hosts=ELASTICSEARCH_URL)
     redis = aioredis.from_url(settings.REDIS_URL)
     fastapi_app.state.redis_client = redis
-    FastAPICache.init(RedisBackend(redis), prefix='fastapi-cache')
-    
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+
     transport = ASGITransport(app=fastapi_app)
-    async with AsyncClient(transport=transport, base_url='http://test') as app_client:
-        await app_client.post('/users/login_with_email', json={'email': 'admin@shop.com', 'password': 'admin123'})
+    async with AsyncClient(transport=transport, base_url="http://test") as app_client:
+        await app_client.post(
+            "/users/login_with_email",
+            json={"email": "admin@shop.com", "password": "admin123"},
+        )
         assert app_client.cookies[settings.JWT_ACCESS_COOKIE_NAME]
         yield app_client
-        
+
     el_cl: AsyncElasticsearch = fastapi_app.state.el_cl
     await el_cl.close()
-    
-    
-@pytest.fixture(scope='function')
+
+
+@pytest.fixture(scope="function")
 async def clean_authenticated_ac():
     fastapi_app.state.el_cl = AsyncElasticsearch(hosts=ELASTICSEARCH_URL)
     fastapi_app.state.el_cl_sync = Elasticsearch(hosts=ELASTICSEARCH_URL)
     redis = aioredis.from_url(settings.REDIS_URL)
     fastapi_app.state.redis_client = redis
-    FastAPICache.init(RedisBackend(redis), prefix='fastapi-cache')
-    
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+
     transport = ASGITransport(app=fastapi_app)
-    async with AsyncClient(transport=transport, base_url='http://test') as app_client:
-        await app_client.post('/users/login_with_email', json={'email': 'clear@gmail.com', 'password': 'clear123'})
+    async with AsyncClient(transport=transport, base_url="http://test") as app_client:
+        await app_client.post(
+            "/users/login_with_email",
+            json={"email": "clear@gmail.com", "password": "clear123"},
+        )
         assert app_client.cookies[settings.JWT_ACCESS_COOKIE_NAME]
         yield app_client
-        
+
     el_cl: AsyncElasticsearch = fastapi_app.state.el_cl
     await el_cl.close()

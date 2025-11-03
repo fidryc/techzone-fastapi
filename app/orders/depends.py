@@ -9,6 +9,7 @@ from app.orders.services import OrderService
 def get_order_dao(session: SessionDep):
     return OrderDao(session)
 
+
 OrderDaoDep = Annotated[OrderDao, Depends(get_order_dao)]
 
 

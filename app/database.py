@@ -10,8 +10,8 @@ from app.logger import logger
 
 DATABASE_URL = settings.DB_URL
 DATABASE_URL_SYNC = settings.DB_SYNC_URL
-    
-    
+
+
 engine = create_async_engine(DATABASE_URL, **settings.DB_PARAMS)
 engine_sync = create_engine(DATABASE_URL_SYNC, **settings.DB_PARAMS)
 
@@ -19,43 +19,45 @@ session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False
 
 session_maker_sync = sessionmaker(engine_sync, class_=Session, expire_on_commit=False)
 
+
 async def get_session():
     async with session_maker() as session:
         try:
-            logger.debug(msg='Open session')
+            logger.debug(msg="Open session")
             yield session
         finally:
-            logger.debug(msg='Close session')
+            logger.debug(msg="Close session")
             await session.close()
-            
+
+
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
-            
-            
+
+
 def get_session_sync():
     with session_maker_sync() as session:
         try:
             yield session
         finally:
             session.close()
-            
-            
+
+
 class Base(DeclarativeBase):
     def __repr__(self):
         return self.__tablename__
-    
+
     def _find(self):
         for key in self.__dict__:
-            if key.endswith('id') and key.startswith(self.__class__.__name__.lower()):
+            if key.endswith("id") and key.startswith(self.__class__.__name__.lower()):
                 return key
         else:
-            return ''
-            
+            return ""
+
     def __str__(self):
         id_key = self._find()
         if id_key:
-            return f'{self.__class__.__name__} {getattr(self, id_key)}'
+            return f"{self.__class__.__name__} {getattr(self, id_key)}"
         else:
-            return '{self.__class__.__name__}'
-    
+            return "{self.__class__.__name__}"
+
     def __format__(self, format_spec: str) -> str:
         return format(self.__tablename__, format_spec)

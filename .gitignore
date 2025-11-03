@@ -6,3 +6,8 @@ __pycache__/
 secrets.json
 *.$plane.drawio.bkp
 *.drawio
+frontend/
+.pytest_cache
+celerybeat-schedule
+
+
