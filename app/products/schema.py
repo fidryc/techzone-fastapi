@@ -1,7 +1,8 @@
-from sqlalchemy.dialects.postgresql import JSONB
-from pydantic import BaseModel, Field
-from typing import Optional
 from json import dumps
+from typing import Optional
+
+from pydantic import BaseModel, Field
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 class ProductSchema(BaseModel):

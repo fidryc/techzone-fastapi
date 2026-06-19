@@ -1,22 +1,18 @@
+from fastapi import HTTPException, status
 from pydantic import ValidationError
 from sqlalchemy import update
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.elasticsearch.services import ElasticsearchService
-from app.products.dao import (
-    CategoryDao,
-    HistoryQueryTextDao,
-    ProductDao,
-    ProductSyncDao,
-    ReviewSyncDao,
-)
+from app.logger import logger
+from app.products.dao import (CategoryDao, HistoryQueryTextDao, ProductDao,
+                              ProductSyncDao, ReviewSyncDao)
 from app.products.models import Category, Product
 from app.products.schema import ProductSchema
 from app.products.schema_specifications import specification_schemas_dict
 from app.tasks.email_tasks import send_email_about_new_product
-from sqlalchemy.ext.asyncio import AsyncSession
 from app.users.schema import UserSchema
-from fastapi import HTTPException, status
-from app.logger import logger
-from sqlalchemy.exc import SQLAlchemyError
 
 
 class ProductServiceSync:

@@ -1,3 +1,4 @@
+from textwrap import indent
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, ForeignKey, Numeric, Enum
@@ -28,18 +29,19 @@ class Order(Base):
             name="order_status_enum",
         ),
         nullable=False,
+        index=True
     )
     order_type_id: Mapped[int] = mapped_column(
-        ForeignKey("order_types.order_type_id", ondelete="RESTRICT"), nullable=False
+        ForeignKey("order_types.order_type_id", ondelete="RESTRICT"), nullable=False, index=True
     )
     order_detail_id: Mapped[int] = mapped_column(nullable=False)
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.user_id", ondelete="RESTRICT"), nullable=False
     )
     date: Mapped[datetime | None] = mapped_column(
-        default=lambda: datetime.now(timezone.utc), nullable=True
+        default=lambda: datetime.now(timezone.utc), nullable=True, index=True
     )
-    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False, index=True)
     created_at: Mapped[datetime | None] = mapped_column(
         default=lambda: datetime.now(timezone.utc), nullable=True
     )

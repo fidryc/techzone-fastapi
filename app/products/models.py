@@ -1,4 +1,3 @@
-from app.users.models import User
 from datetime import datetime
 from app.database import Base
 from sqlalchemy.orm import Mapped, mapped_column
@@ -21,7 +20,7 @@ class Product(Base):
     product_id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(256), nullable=False)
     category_id: Mapped[int | None] = (
-        mapped_column(  # 🧩 исправлено: ondelete='SET NULL' требует nullable=True
+        mapped_column(
             ForeignKey("categories.category_id", ondelete="SET NULL"),
             index=True,
             nullable=True,

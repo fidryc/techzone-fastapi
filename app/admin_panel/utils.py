@@ -1,6 +1,9 @@
 import inspect
+
 from sqladmin import ModelView
+
 import app.admin_panel.views as admin_views
+
 
 def get_admin_views() -> list:
     classes = []

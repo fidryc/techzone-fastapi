@@ -1,7 +1,7 @@
-from app.database import Base
-from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Enum, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.database import Base
 
 
 class User(Base):

@@ -1,6 +1,8 @@
 from typing import Annotated
+
 from aioredis import Redis
 from fastapi import Depends, Request, Response
+
 from app.database import get_session
 from app.orders.dao import OrderDao
 from app.redis.services import RedisService

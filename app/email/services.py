@@ -1,8 +1,10 @@
-from aiosmtplib import send, SMTPException
 import smtplib
+
+from aiosmtplib import SMTPException, send
+from fastapi import HTTPException, status
+
 from app.config import settings
 from app.logger import logger
-from fastapi import HTTPException, status
 
 
 async def async_send_email(msg_email):

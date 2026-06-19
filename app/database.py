@@ -1,12 +1,12 @@
 from typing import Annotated
+
 from fastapi import Depends
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+
 from app.config import settings
 from app.logger import logger
-
 
 DATABASE_URL = settings.DB_URL
 DATABASE_URL_SYNC = settings.DB_SYNC_URL

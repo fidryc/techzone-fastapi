@@ -1,25 +1,27 @@
 from contextlib import asynccontextmanager
-from sqladmin import Admin
-from app.middleware import check_time
-from app.users.router import router as users_router
-from app.products.router import router as products_router
+
 from elasticsearch import AsyncElasticsearch, Elasticsearch
-from app.config import settings
-from app.elasticsearch.router import router as el_router
-from redis import asyncio as aioredis
-from fastapi_cache import FastAPICache
-from fastapi_cache.backends.redis import RedisBackend
-from app.orders.router import router as orders_router
-from app.redis.router import router as redis_router
-from app.stores.router import router as store_router
-from app.logger import logger
-from app.database import engine
-from app.admin_panel.utils import get_admin_views
-from app.admin_panel.middleware import check_admin
-from app.elasticsearch.config import ELASTICSEARCH_URL
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
 from prometheus_fastapi_instrumentator import Instrumentator
+from redis import asyncio as aioredis
+from sqladmin import Admin
+
+from app.admin_panel.middleware import check_admin
+from app.admin_panel.utils import get_admin_views
+from app.config import settings
+from app.database import engine
+from app.elasticsearch.config import ELASTICSEARCH_URL
+from app.elasticsearch.router import router as el_router
+from app.logger import logger
+from app.middleware import check_time
+from app.orders.router import router as orders_router
+from app.products.router import router as products_router
+from app.redis.router import router as redis_router
+from app.stores.router import router as store_router
+from app.users.router import router as users_router
 
 
 @asynccontextmanager
@@ -45,7 +47,8 @@ app.include_router(orders_router)
 app.include_router(redis_router)
 app.include_router(store_router)
 
-admin = Admin(app, engine)
+ADMIN_PATH = "/secret-admin-path"
+admin = Admin(app, engine, base_url=ADMIN_PATH)
 views = get_admin_views()
 for view in views:
     admin.add_view(view)

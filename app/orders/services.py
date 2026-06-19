@@ -1,24 +1,20 @@
 from datetime import datetime
 
-from sqlalchemy import text
-from app.orders.dao import (
-    BasketDao,
-    OrderDao,
-    OrderDeliveryDetailDao,
-    OrderPickUpDetailsDao,
-    PurchaseDao,
-)
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
+from app.logger import create_msg_db_error, logger
+from app.orders.dao import (BasketDao, OrderDao, OrderDeliveryDetailDao,
+                            OrderPickUpDetailsDao, PurchaseDao)
 from app.orders.models import Order
 from app.orders.schema import OrderPickUpDetailSchema
 from app.products.dao import ProductDao
-from app.logger import logger, create_msg_db_error
 from app.stores.dao import StoreQuantityInfoDao
 from app.tasks.tasks_rbmq import send_courier_notification
 from app.users.models import User
-from app.config import settings
+from app.users.schema import UserSchema
 
 
 class BasketService:
@@ -67,8 +63,8 @@ class BasketService:
 
 
 class OrderService:
-    def __init__(self, session):
-        self.order_dao = OrderDao(session)
+    def __init__(self, session, order_dao: OrderDao):
+        self.order_dao = order_dao
 
     async def get_orders(self, user_id: int) -> list[Order]:
         """Получение заказов пользователя"""
@@ -85,7 +81,7 @@ class OrderService:
             )
             raise HTTPException(status_code=500, detail="Ошибка при получении заказов")
 
-    async def change_status(self, user: User, order_id: int, status: str):
+    async def change_status(self, user: UserSchema, order_id: int, status: str):
         """
         Смена статуса заказа
 

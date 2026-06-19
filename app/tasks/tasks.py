@@ -1,12 +1,13 @@
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ConnectionError
+
+from app.database import session_maker_sync
 from app.elasticsearch.config import ELASTICSEARCH_URL
 from app.elasticsearch.services import ElasticsearchSyncService
+from app.logger import logger
+from app.products.dao import ProductSyncDao, ReviewSyncDao
 from app.products.services import ProductServiceSync
 from app.tasks.celery import app
-from app.database import session_maker_sync
-from app.products.dao import ProductSyncDao, ReviewSyncDao
-from app.logger import logger
 
 
 @app.task

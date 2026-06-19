@@ -1,11 +1,13 @@
 import json
+
 from fastapi import HTTPException, status
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
-from app.redis.utils import redis_get_data
+
 from app.config import settings
-from app.users.utils import UserAuthRedisSchema, verify_code
 from app.logger import logger
+from app.redis.utils import redis_get_data
+from app.users.utils import UserAuthRedisSchema, verify_code
 
 
 class RedisService:

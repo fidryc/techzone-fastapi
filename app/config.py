@@ -1,8 +1,9 @@
-from typing import Literal
-from pydantic_settings import BaseSettings
-from pydantic import ConfigDict, FilePath
 from pathlib import Path
+from typing import Literal
+
 from dotenv import load_dotenv
+from pydantic import ConfigDict, FilePath
+from pydantic_settings import BaseSettings
 from sqlalchemy import NullPool
 
 
@@ -94,14 +95,18 @@ class Settings(BaseSettings):
             self._public_secret_key_cache = Path(self.PUBLIC_SECRET_PATH).read_text()
         return self._public_secret_key_cache
 
+    __DB_URL = None
+    
     @property
     def DB_URL(self):
-        DB_URLS = {
-            "TEST": f"postgresql+asyncpg://{self.TEST_DB_USER}:{self.TEST_DB_PASS}@{self.TEST_DB_HOST}:{self.TEST_DB_PORT}/{self.TEST_DB_NAME}",
-            "PROD": f"postgresql+asyncpg://{self.PROD_DB_USER}:{self.PROD_DB_PASS}@{self.PROD_DB_HOST}:{self.PROD_DB_PORT}/{self.PROD_DB_NAME}",
-            "DEV": f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}",
-        }
-        return DB_URLS[self.MODE]
+        if not self.__DB_URL:
+            DB_URLS = {
+                "TEST": f"postgresql+asyncpg://{self.TEST_DB_USER}:{self.TEST_DB_PASS}@{self.TEST_DB_HOST}:{self.TEST_DB_PORT}/{self.TEST_DB_NAME}",
+                "PROD": f"postgresql+asyncpg://{self.PROD_DB_USER}:{self.PROD_DB_PASS}@{self.PROD_DB_HOST}:{self.PROD_DB_PORT}/{self.PROD_DB_NAME}",
+                "DEV": f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}",
+            }
+            self.__DB_URL = DB_URLS[self.MODE]
+        return self.__DB_URL
 
     @property
     def DB_PARAMS(self):

@@ -5,35 +5,20 @@ from fastapi import HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.logger import logger
 from app.orders.dao import OrderDao
 from app.redis.services import RedisService
 from app.tasks.email_tasks import send_email_code
 from app.users.dao import RefreshTokenBLDao, UserDao
-from app.users.jwt import (
-    set_verify_register_token,
-    get_access_token,
-    get_refresh_token,
-    get_verify_token,
-    set_token,
-    validate_exp_token,
-    validate_payload_fields,
-)
-from app.users.schema import (
-    UserAuthEmailSchema,
-    UserAuthNumberSchema,
-    UserAuthRedisSchema,
-    UserRegisterEmailSchema,
-    UserRegisterNumberSchema,
-    UserSchema,
-)
-from app.users.utils import (
-    check_pwd,
-    logout_user,
-    prepare_user_for_auth,
-    random_code,
-    verify_code,
-)
-from app.logger import logger
+from app.users.jwt import (get_access_token, get_refresh_token,
+                           get_verify_token, set_token,
+                           set_verify_register_token, validate_exp_token,
+                           validate_payload_fields)
+from app.users.schema import (UserAuthEmailSchema, UserAuthNumberSchema,
+                              UserAuthRedisSchema, UserRegisterEmailSchema,
+                              UserRegisterNumberSchema, UserSchema)
+from app.users.utils import (check_pwd, logout_user, prepare_user_for_auth,
+                             random_code, verify_code)
 
 
 class RefreshTokenBLService:

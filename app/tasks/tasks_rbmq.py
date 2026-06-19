@@ -1,8 +1,9 @@
+from celery.exceptions import Reject
+
 from app.email.email_template import courier_notification_msg
-from app.tasks.celery_rbmq import app_rbmq
 from app.email.services import send_email
 from app.logger import logger
-from celery.exceptions import Reject
+from app.tasks.celery_rbmq import app_rbmq
 
 
 @app_rbmq.task

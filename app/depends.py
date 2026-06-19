@@ -1,12 +1,13 @@
 from typing import Annotated
+
 from fastapi import Depends, Request, Response
+
+from app.database import SessionDep
 from app.orders.dao import OrderDao
 from app.redis.services import RedisService
 from app.users.dao import UserDao
 from app.users.schema import UserSchema
 from app.users.services import UserService
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.database import SessionDep
 
 
 async def get_user_service(session: SessionDep):

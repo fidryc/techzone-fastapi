@@ -1,14 +1,12 @@
 from typing import Annotated
+
 from fastapi import Depends
+
 from app.database import SessionDep
-from app.products.dao import CategoryDao, HistoryQueryTextDao, ProductDao
-from app.products.services import (
-    CategoryService,
-    HistoryQueryTextService,
-    ProductService,
-    SearchHistoryService,
-)
 from app.elasticsearch.depends import ElasticsearchServiceDep
+from app.products.dao import CategoryDao, HistoryQueryTextDao, ProductDao
+from app.products.services import (CategoryService, HistoryQueryTextService,
+                                   ProductService, SearchHistoryService)
 
 
 def get_product_dao(session: SessionDep) -> ProductDao:

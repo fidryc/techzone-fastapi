@@ -1,10 +1,11 @@
-from app.dao import BaseDao
-from app.users.models import User, RefreshTokenBL
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.dao import BaseDao
 from app.logger import create_msg_db_error, logger
+from app.users.models import RefreshTokenBL, User
 
 
 class UserDao(BaseDao):

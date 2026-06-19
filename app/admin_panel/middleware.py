@@ -1,12 +1,13 @@
 from fastapi import Request
+from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
+
 from app.database import session_maker
 from app.orders.dao import OrderDao
 from app.redis.services import RedisService
-from app.users.dao import UserDao
-from app.users.dao import RefreshTokenBLDao
+from app.users.dao import RefreshTokenBLDao, UserDao
 from app.users.services import RefreshTokenBLService, UserService
-from fastapi.exceptions import HTTPException
+
 
 async def check_admin(request: Request, call_next):
     response = await call_next(request)

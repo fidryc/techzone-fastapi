@@ -64,6 +64,8 @@ services:
   elasticsearch:
     image: elasticsearch:9.1.5
     container_name: elasticsearch
+    ports:
+        - "9200:9200"
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false

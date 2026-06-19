@@ -1,26 +1,19 @@
 import functools
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, Query, Request, Response
-from app.elasticsearch.depends import ElasticsearchServiceDep
-from app.products.depends import (
-    CategoryServiceDep,
-    HistoryQueryTextServiceDep,
-    ProductDaoDep,
-    ProductServiceDep,
-    SearchHistoryServiceDep,
-)
-from app.products.schema import (
-    HistoryQueryUserSchema,
-    ProductResponseSchema,
-    ProductSchema,
-)
+from fastapi_cache.decorator import cache
 
 from app.database import SessionDep, get_session
+from app.elasticsearch.depends import ElasticsearchServiceDep
+from app.products.depends import (CategoryServiceDep,
+                                  HistoryQueryTextServiceDep, ProductDaoDep,
+                                  ProductServiceDep, SearchHistoryServiceDep)
+from app.products.schema import (HistoryQueryUserSchema, ProductResponseSchema,
+                                 ProductSchema)
 from app.products.services import ProductService
 from app.users.depends import CurrentUserDep
 from app.users.services import UserService
-
-from fastapi_cache.decorator import cache
 
 router = APIRouter(prefix="/products", tags=["Работа с товарами"])
 

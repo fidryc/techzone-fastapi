@@ -1,7 +1,7 @@
 from app.email.email_template import new_product_email, register_code
 from app.email.services import send_email
-from app.tasks.celery import app
 from app.logger import logger
+from app.tasks.celery import app
 
 
 @app.task

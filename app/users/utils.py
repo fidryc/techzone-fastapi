@@ -1,13 +1,12 @@
 from random import randint
 
 from bcrypt import checkpw, gensalt, hashpw
-from fastapi import HTTPException, Response
-from pydantic import BaseModel
-
-from app.redis.client import redis_client
+from fastapi import Response
 
 from app.config import settings
-from app.users.schema import UserAuthRedisSchema, UserRegisterEmailSchema, UserRegisterNumberSchema
+from app.redis.client import redis_client
+from app.users.schema import (UserAuthRedisSchema, UserRegisterEmailSchema,
+                              UserRegisterNumberSchema)
 
 
 def get_hash(password: str) -> str:

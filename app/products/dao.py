@@ -1,10 +1,11 @@
-from app.dao import BaseDao, BaseSyncDao
-from sqlalchemy import between, text, select
+from fastapi import HTTPException, status
+from sqlalchemy import between, select, text
 from sqlalchemy.exc import SQLAlchemyError
+
+from app.dao import BaseDao, BaseSyncDao
+from app.logger import create_msg_db_error, logger
 from app.products.models import Category, HistoryQueryUser, Product
 from app.products.schema import ProductSchema
-from fastapi import HTTPException, status
-from app.logger import logger, create_msg_db_error
 
 
 class ProductDao(BaseDao):

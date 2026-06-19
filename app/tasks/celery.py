@@ -1,8 +1,9 @@
-from celery import Celery
-from app.config import settings
-from celery.schedules import crontab
 import os
 
+from celery import Celery
+from celery.schedules import crontab
+
+from app.config import settings
 
 # Директория на уровень выше app
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))

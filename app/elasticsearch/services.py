@@ -1,11 +1,13 @@
-from elasticsearch.exceptions import ElasticsearchWarning, ConnectionError
-from app.elasticsearch.elasticsearch_dao import ElasticsearchDao, ElasticsearchSyncDao
+from elasticsearch.exceptions import ConnectionError, ElasticsearchWarning
+from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.config import settings
+from app.elasticsearch.elasticsearch_dao import (ElasticsearchDao,
+                                                 ElasticsearchSyncDao)
+from app.logger import logger
 from app.products.dao import ProductDao, ProductSyncDao
 from app.products.schema import ProductReturnSchema
-from app.config import settings
-from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
-from app.logger import logger
 
 
 class ElasticsearchService:

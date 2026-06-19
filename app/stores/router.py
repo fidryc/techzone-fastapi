@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from app.database import SessionDep
 from app.stores.dao import StoreQuantityInfoDao
 from app.stores.schema import StoreQuantityInfoSchema

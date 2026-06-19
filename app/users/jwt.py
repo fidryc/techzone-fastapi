@@ -1,12 +1,13 @@
-from jwt import encode, decode
-from jwt.exceptions import PyJWTError
-from app.config import settings
-from app.users.schema import UserSchema
-from datetime import datetime, timedelta, timezone
-from fastapi import Request, Response, HTTPException
 import uuid
-from app.logger import logger
+from datetime import datetime, timedelta, timezone
+
+from fastapi import HTTPException, Request, Response
+from jwt import decode, encode
+from jwt.exceptions import PyJWTError
+
 from app.config import settings
+from app.logger import logger
+from app.users.schema import UserSchema
 
 
 def set_verify_register_token(response: Response, key: str):

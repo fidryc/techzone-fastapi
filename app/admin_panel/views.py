@@ -1,22 +1,12 @@
 from sqladmin import Admin, ModelView
+
 from app.database import engine
-from app.orders.models import (
-    Order,
-    OrderType,
-    OrderPickUpDetail,
-    OrderDeliveryDetail,
-    Purchase,
-    Basket
-)
-from app.users.models import RefreshTokenBL, User
+from app.orders.models import (Basket, Order, OrderDeliveryDetail,
+                               OrderPickUpDetail, OrderType, Purchase)
+from app.products.models import (Category, FavoriteProduct, HistoryQueryUser,
+                                 Product, Review)
 from app.stores.models import Store, StoreQuantityInfo
-from app.products.models import (
-    Category, 
-    Product, 
-    Review, 
-    FavoriteProduct, 
-    HistoryQueryUser
-)
+from app.users.models import RefreshTokenBL, User
 
 
 class UserAdmin(ModelView, model=User):

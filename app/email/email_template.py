@@ -1,5 +1,7 @@
 from email.message import EmailMessage
+
 from app.config import settings
+
 
 def register_code(email_to, code):
     email_message = EmailMessage()

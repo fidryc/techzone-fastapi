@@ -1,5 +1,6 @@
-from datetime import datetime, timezone
 import logging
+from datetime import datetime, timezone
+
 from pythonjsonlogger import jsonlogger
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -41,3 +42,5 @@ def create_msg_db_error(e, optinal_info=None) -> str:
             msg += ": " + optinal_info
     elif isinstance(e, Exception):
         msg = "Unknow exception"
+        
+    return msg

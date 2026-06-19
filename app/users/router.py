@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from app.redis.depends import RedisServiceDep
+from app.scripts.create_admin import create_admin
 from app.users.depends import (
     CurrentUserDep,
     RegisterServiceDep,
@@ -148,19 +149,6 @@ async def login_with_number(
     await user_service.login_user(response, user)
 
 
-# # дописать
-# @router.post('/change_email')
-# async def change_email(user: CurrentUserDep, user_service: UserServiceDep, new_email):
-#     await user_service.change_email(user, new_email)
-
-
-# # дописать
-# @router.post('/change_number')
-# async def change_number(response: Response, new_number, session = Depends(get_session)):
-#     users_services = UserService(session)
-#     await users_services.change_number(new_number)
-
-
 @router.post(path="/logout", summary="Выход с аккаунта")
 async def logout(response: Response, user_service: UserServiceDep):
     """
@@ -193,19 +181,6 @@ async def delete_user(
 
     await user_service.delete_user(user, response)
 
-
-@router.get(path="/test/", summary="Проверка правильности получения пользователя")
-async def test(user: CurrentUserDep):
-    """
-    Тестовый эндпоинт
-
-    Используется для тестирования функциональности аутентификации
-
-    Args:
-        user: текущий пользователь
-
-    Returns:
-        200: Тестовый ответ
-    """
-
-    return user.email
+@router.post("/test_create_admin")
+async def test_create_admin():
+    await create_admin("admin@gmail.com", "admin")

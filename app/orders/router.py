@@ -1,20 +1,15 @@
 from typing import Literal
-from fastapi import APIRouter
 
-from app.database import SessionDep, get_session
-from app.orders.schema import (
-    OrderDeliveryDetailSchema,
-    OrderPickUpDetailSchema,
-    OrderSchema,
-)
-from app.orders.services import (
-    BasketService,
-    OrderDeliveryService,
-    OrderPickUpService,
-    OrderService,
-)
-from app.users.depends import CurrentUserDep, CurrentUserExtendedRightsDep
+from fastapi import APIRouter
 from fastapi_cache.decorator import cache
+
+from app.database import SessionDep
+from app.orders.depends import OrderServiceDep
+from app.orders.schema import (OrderDeliveryDetailSchema,
+                               OrderPickUpDetailSchema, OrderSchema)
+from app.orders.services import (BasketService, OrderDeliveryService,
+                                 OrderPickUpService, OrderService)
+from app.users.depends import CurrentUserDep, CurrentUserExtendedRightsDep
 
 router = APIRouter(prefix="/orders", tags=["Заказы"])
 
@@ -81,7 +76,7 @@ async def create_order_delivery(
 
 
 @router.get("/get_orders", summary="Получение списка заказов")
-async def get_orders(user: CurrentUserDep, session: SessionDep) -> list[OrderSchema]:
+async def get_orders(user: CurrentUserDep, order_service: OrderServiceDep) -> list[OrderSchema]:
     """
     Получение списка заказов пользователя
 
@@ -90,7 +85,6 @@ async def get_orders(user: CurrentUserDep, session: SessionDep) -> list[OrderSch
     Returns:
         Список заказов пользователя
     """
-    order_service = OrderService(session)
     return await order_service.get_orders(user_id=user.user_id)
 
 
@@ -100,8 +94,8 @@ async def set_status(
         "new", "confirmed", "preparing", "delivered", "ready", "finished", "cancelled"
     ],
     order_id: int,
-    user: CurrentUserExtendedRightsDep,
-    session: SessionDep,
+    user: CurrentUserDep,
+    order_service: OrderServiceDep
 ):
     """
     Изменение статуса заказа
@@ -115,5 +109,4 @@ async def set_status(
     Returns:
         200: Статус заказа успешно изменен
     """
-    order_service = OrderService(session)
     await order_service.change_status(user, order_id, status)

@@ -1,23 +1,24 @@
 import asyncio
+
 import aioredis
+import pytest
 from elasticsearch import AsyncElasticsearch, Elasticsearch
 from fastapi_cache import FastAPICache
-import pytest
+from fastapi_cache.backends.redis import RedisBackend
+from httpx import ASGITransport, AsyncClient
+from redis import asyncio as aioredis
 from sqlalchemy import insert
-from app.elasticsearch.config import ELASTICSEARCH_URL
-from app.orders import models
-from app.users import models
-from app.stores import models
-from app.products import models
-from app.database import Base
+
 from app.config import settings
-from app.database import engine, session_maker
+from app.database import Base, engine, session_maker
+from app.elasticsearch.config import ELASTICSEARCH_URL
+from app.main import app as fastapi_app
+from app.orders import models
+from app.products import models
+from app.stores import models
 from app.tests.data_for_test.data_for_init_db import INSERT_TABLES
 from app.tests.utils import reset_sequences
-from httpx import AsyncClient, ASGITransport
-from app.main import app as fastapi_app
-from fastapi_cache.backends.redis import RedisBackend
-from redis import asyncio as aioredis
+from app.users import models
 
 
 @pytest.fixture(scope="session", autouse=True)

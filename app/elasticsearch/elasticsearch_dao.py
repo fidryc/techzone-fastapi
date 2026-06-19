@@ -1,8 +1,9 @@
 from elasticsearch import AsyncElasticsearch, Elasticsearch
-from elasticsearch.helpers import async_bulk, BulkIndexError, bulk
 from elasticsearch.exceptions import ElasticsearchWarning
-from app.logger import logger
+from elasticsearch.helpers import BulkIndexError, async_bulk, bulk
 from fastapi import HTTPException, status
+
+from app.logger import logger
 
 
 class ElasticsearchDao:

@@ -1,11 +1,14 @@
 from typing import Annotated
+
 from fastapi import Depends, HTTPException, Request, Response
+
+from app.database import SessionDep
 from app.orders.depends import OrderDaoDep
 from app.redis.depends import RedisServiceDep
 from app.users.dao import RefreshTokenBLDao, UserDao
 from app.users.schema import UserSchema
-from app.users.services import RefreshTokenBLService, RegisterService, UserService
-from app.database import SessionDep
+from app.users.services import (RefreshTokenBLService, RegisterService,
+                                UserService)
 
 
 async def get_refresh_token_bl_dao(session: SessionDep) -> RefreshTokenBLDao:

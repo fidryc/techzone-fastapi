@@ -1,5 +1,6 @@
-from fastapi import HTTPException
 import pytest
+from fastapi import HTTPException
+
 from app.stores.dao import StoreDao
 
 

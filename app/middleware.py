@@ -1,7 +1,9 @@
+from datetime import datetime, timezone
+
 from fastapi import Request
+
 from app.logger import logger
-from datetime import datetime
-from datetime import timezone
+
 
 async def check_time(request: Request, call_next):
     start_time = datetime.now(timezone.utc)

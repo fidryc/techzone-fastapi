@@ -1,11 +1,11 @@
-from app.database import session_maker
-from sqlalchemy import insert, values, select
+from fastapi import HTTPException
+from sqlalchemy import insert, select, values
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
-from app.logger import logger
-from fastapi import HTTPException
-from app.logger import create_msg_db_error
+
+from app.database import session_maker
+from app.logger import create_msg_db_error, logger
 
 
 class Pass:

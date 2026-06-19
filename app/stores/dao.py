@@ -1,7 +1,7 @@
-from app.stores.models import Store
 from sqlalchemy import text
+
 from app.dao import BaseDao
-from app.stores.models import StoreQuantityInfo
+from app.stores.models import Store, StoreQuantityInfo
 from app.stores.schema import StoreQuantityInfoSchema
 
 
